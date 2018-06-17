@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next muse use-motion" lang="">
+<html class="theme-next mist use-motion" lang="">
 <head>
   <meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -93,7 +93,7 @@
   var NexT = window.NexT || {};
   var CONFIG = {
     root: '/',
-    scheme: 'Muse',
+    scheme: 'Mist',
     version: '5.1.4',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
     fancybox: true,
@@ -187,16 +187,6 @@
         </li>
       
         
-        <li class="menu-item menu-item-about">
-          <a href="/about/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
-            
-            About
-          </a>
-        </li>
-      
-        
         <li class="menu-item menu-item-categories">
           <a href="/categories/" rel="section">
             
@@ -213,6 +203,16 @@
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
             
             Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
           </a>
         </li>
       
@@ -235,6 +235,193 @@
           <div id="content" class="content">
             
   <section id="posts" class="posts-expand">
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/05/11/2013-08-29-google-c-plus-plus-style/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2013/05/11/2013-08-29-google-c-plus-plus-style/" itemprop="url">Google C++ Style</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-05-11T23:12:00+08:00">
+                2013-05-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Programe/" itemprop="url" rel="index">
+                    <span itemprop="name">Programe</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>阅读完《Google C++ Style》记录些小要点，很多开源代码都是按照这个规则编码，在了解这些原则之后，个人感觉阅读开源代码应该会省很多力气。</p>
+<ul>
+<li>有头文件都应该使用 #define 防止头文件被多重包含, 命名格式当是: <strong>_H</strong></li>
+<li><p>能用前置声明的地方尽量不使用 #include<br>前置声明是为了降低编译依赖，防止修改一个头文件引发多米诺效应; 举例说明: 如果头文件中用到类 File, 但不需要访问 File 类的声明, 头文件中只需前置声明 class File; 而无须 #include “file/base/file.h”.</p>
+</li>
+<li><p>只有当函数只有 10 行甚至更少时才将其定义为内联函数.<br>当函数被声明为内联函数之后, 编译器会将其内联展开, 而不是按通常的函数调用机制进行调用.优点:当函数体比较小的时候, 内联该函数可以令目标代码更加高效. 对于存取函数以及其它函数体比较短, 性能关键的函数</p>
+</li>
+<li><p>义函数时, 参数顺序依次为: 输入参数, 然后是输出参数。<br>标准化函数参数顺序可以提高可读性和易维护性</p>
+</li>
+<li><p>造函数体中进行初始化操作<br>如果对象需要进行有意义的 (non-trivial) 初始化, 考虑使用明确的 Init() 方法并 (或) 增加一个成员标记用于指示对象是否已经初始化成功.</p>
+</li>
+<li><p>单个参数的构造函数使用 C++ 关键字 explicit.<br>  大部分类并不需要可拷贝, 也不需要一个拷贝构造函数或重载赋值运算符. 不幸的是, 如果你不主动声明它们, 编译器会为你自动生成, 而且是 public 的.可以考虑在类的 private: 中添加拷贝构造函数和赋值操作的空实现, 只有声明, 没有定义. 由于这些空函数声明为 private, 当其他代码试图使用它们的时候, 编译器将报错. 方便起见, 我们可以使用 DISALLOW_COPY_AND_ASSIGN 宏:</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">#define DISALLOW_COPY_AND_ASSIGN(TypeName) \</span><br><span class="line">    TypeName(const TypeName&amp;); \</span><br><span class="line">void operator=(const TypeName&amp;)</span><br><span class="line">class Foo &#123;</span><br><span class="line">    public:</span><br><span class="line">        Foo(int f);</span><br><span class="line">        ~Foo();</span><br><span class="line"></span><br><span class="line">    private:</span><br><span class="line">        DISALLOW_COPY_AND_ASSIGN(Foo);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>仅当只有数据时使用 struct, 其它一概使用 class.</li>
+<li><p>编写简短函数<br>如果函数超过 40 行, 可以思索一下能不能在不影响程序结构的前提下对其进行分割.</p>
+</li>
+<li><p>存取控制</p>
+</li>
+</ul>
+<p>将所有数据成员声明为 private, 并根据需要提供相应的存取函数. 例如, 某个名为 foo_ 的变量, 其取值函数是 foo(). 还可能需要一个赋值函数 set_foo().一般在头文件中把存取函数定义成内联函数.</p>
+<ul>
+<li>声明顺序</li>
+</ul>
+<p>在类中使用特定的声明顺序: public: 在 private: 之前, 成员函数在数据成员 (变量) 前;</p>
+<p>通常是：</p>
+<ul>
+<li>public -&gt; protected -&gt; private;</li>
+<li>typedefs 和枚举</li>
+<li>常量</li>
+<li>构造函数</li>
+<li>析构函数</li>
+<li>成员函数, 含静态成员函数</li>
+<li>数据成员, 含静态数据成员</li>
+<li>类型转换</li>
+</ul>
+<p>使用 C++ 的类型转换, 如 static_cast&lt;&gt;(). 不要使用 int y = (int)x 或 int y = int(x) 等转换方式;<br>不要使用 C 风格类型转换. 而应该使用 C++ 风格.</p>
+<ul>
+<li>对于迭代器和其他模板对象使用前缀形式 (++i) 的自增, 自减运算符.</li>
+</ul>
+<p>不考虑返回值的话, 前置自增 (++i) 通常要比后置自增 (i++) 效率更高. 因为后置自增 (或自减) 需要对表达式的值 i 进行一次拷贝. 如果 i 是迭代器或其他非数值类型, 拷贝的代价是比较大的.</p>
+<ul>
+<li>尽可能用 sizeof(varname) 代替 sizeof(type).</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
     
       
 
@@ -1625,174 +1812,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2012/03/17/2013-08-28-fu-wu-qi-she-ji-mo-xing/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2012/03/17/2013-08-28-fu-wu-qi-she-ji-mo-xing/" itemprop="url">服务器设计模型</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2012-03-17T20:37:00+08:00">
-                2012-03-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Server/" itemprop="url" rel="index">
-                    <span itemprop="name">Server</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>服务端编程的挑战很美<br>Socket编程的服务器模型类型:</p>
-</blockquote>
-<ul>
-<li>循环服务器模型</li>
-<li>并发服务器模型</li>
-<li>IO复用服务器模型</li>
-</ul>
-<ul>
-<li><p>循环服务器模型:<br> 使用循环方法去逐个处理客户端连接和请求</p>
-</li>
-<li><p>并发服务器的简单模型:<br>使用进程处理客户端的连接和请求</p>
-</li>
-<li><p>并发服务器的TCP分类:</p>
-</li>
-</ul>
-<p>使用了进程池或者线程池的进行客户端请求处理的框架和方法，并按照accept处理情况进行不同状态的划分<br><em>单客户端单进程，统一accept()
-</em>单客户端单进程，统一accept()<br><em>单客户端单线程，各线程独自accept(),使用互斥锁
-</em>并发服务模型使用IO复用:</p>
-<p>使用同一处理模块监视多个客户端链接并进行处理.在系统开始的时候，建立多个不同工作类型的处理单元，例如处理连接单元，处理业务单元等。在客户端来的时候，将客户端的连接放在一个状态池中，对所有客户端的连接状态在一个处理单元进行轮询处理，与前面并发服务器相比，客户端增加不会造成系统并行处理单元的增加，而处理能力与CPU和内存速度有直接关系</p>
-<p>上述所有模型都有Demo</p>
-<p>代码在 <a href="https://github.com/zheng-ji/Server-Model" target="_blank" rel="noopener">GitHub 上</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/8/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span>
+    <a class="extend prev" rel="prev" href="/page/8/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/10/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1838,7 +1862,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">90</span>
+                  <span class="site-state-item-count">91</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1922,7 +1946,7 @@
 
 
 
-  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
 
 
 
