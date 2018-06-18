@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="zheng-ji Blog" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="MySQL my.cnf">
+<meta property="og:type" content="article">
+<meta property="og:title" content="my.cnf 配置依据">
+<meta property="og:url" content="http://yoursite.com/2015/07/12/2015-07-12-my-dot-cnfpei-zhi-yi-ju/index.html">
+<meta property="og:site_name" content="织网">
+<meta property="og:description" content="MySQL my.cnf">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-06-17T10:38:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="my.cnf 配置依据">
+<meta name="twitter:description" content="MySQL my.cnf">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/07/12/2015-07-12-my-dot-cnfpei-zhi-yi-ju/"/>
+
+
+
+
+
+  <title>my.cnf 配置依据 | 织网</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">织网</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/07/12/2015-07-12-my-dot-cnfpei-zhi-yi-ju/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">my.cnf 配置依据</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-07-12T08:35:00+08:00">
+                2015-07-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DataBase/" itemprop="url" rel="index">
+                    <span itemprop="name">DataBase</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  MySQL my.cnf
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>阅读完<a href="http://book.douban.com/subject/6873681/" target="_blank" rel="noopener">构建高性能服务器</a> 一书，书中对 <code>MySQL</code> 配置做了讲解，我用烂笔头记录一番，明白它们这么配置的真正意义，形成系统的认知。</p>
+<ul>
+<li><a href="#第一节">通用配置</a></li>
+<li><a href="#第二节">innodb_pool_buffer 合理配置</a></li>
+<li><a href="#第三节">文件打开数的合理设置</a></li>
+<li><a href="#第四节">打开表优化设置</a></li>
+<li><a href="#第五节">临时表的设置</a></li>
+<li><a href="#第六节">查看索引命中率</a></li>
+</ul>
+<h3 id="第一节">通用配置</h3>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">skip-name-resolve:</span><br></pre></td></tr></table></figure>
+<p>禁止 MySQL 对外连接 DNS 解析 ,这一选项可以消除 MySQL 进行DNS解析时间，开启该选项，所有远程主机连接授权都要使用 IP。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">back_log=512</span><br></pre></td></tr></table></figure>
+<p>指出在 MySQL 暂停响应之前，有多少个请求被存在堆栈中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">key_buffer_size</span><br></pre></td></tr></table></figure>
+<p>指定用于索引的缓冲区大小，增加它可得到更好的索引处理能力，对于内存 4G 左右，可设置为 256MB。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">max_allowed_packet=4M</span><br></pre></td></tr></table></figure>
+<p>设定在一次网络传输中的最大值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">thread_stack=256k</span><br></pre></td></tr></table></figure>
+<p>设置每个线程的堆栈大小，可满足普通操作。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">table_cache=614k</span><br></pre></td></tr></table></figure>
+<p>高速缓冲区的大小，当mysql访问一个表示，缓冲区还有空间，那么这个表就会被放入缓冲区，一般看峰值时间状态值，open_tables与open_cache，用于判断是否需要增加table_cache，如果open_Table接近table_cache就要增加了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sort_buffer_size=6M</span><br></pre></td></tr></table></figure>
+<p>设定查询排序所用的缓冲区大小，是对每个链接而言，如果有100个连接，那么分配的总缓存是100*6=600M。<br>read_buffer_size,join_buffer_size 都是对单个链接而言。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">thread_cache_size=64</span><br></pre></td></tr></table></figure>
+<p>设置缓存中的链接线程的最大数量,4GB内存以上的我们会给64或者更大。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">query_cache_size=64M</span><br></pre></td></tr></table></figure>
+<p>如果该值比较小反而会影响效率，可以考虑不用。如果太大，缓存区中碎片会很多。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmp_table_size</span><br></pre></td></tr></table></figure>
+<p>设置内存临时表的最大值，如果超过改制，就会将临时表写入磁盘，范围是1kB-4GB。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">max_connection</span><br></pre></td></tr></table></figure>
+<p>如果超过该值，会出现<code>too many connections</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">max_connect_errors</span><br></pre></td></tr></table></figure>
+<p>设置每个主机中连接请求异常中断最大次数，如果超过，MySQL禁止host连接请求，直到MySQL重启。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wait_timeout = 120</span><br></pre></td></tr></table></figure>
+<p>一个请求的最大链接时间。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">thread_concurrency=8</span><br></pre></td></tr></table></figure>
+<p>该参数为服务器逻辑CPU * 2。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">skip-networking</span><br></pre></td></tr></table></figure>
+<p>该选项可以关闭连接方式，如果需要远程连接，不要开启。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innodb_flush_log_at_trx_commit = 1</span><br></pre></td></tr></table></figure>
+<p>设置为0就是等到 innodb_log_buffer_size 队列满了之后再统一存储，默认是1，是最安全的设置。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innodb_thread_concurrency = 8</span><br></pre></td></tr></table></figure>
+<p>服务器几个CPU就设置多少。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">read_rnd_buffer_Size = 16M</span><br></pre></td></tr></table></figure>
+<p>设置随机读的使用的缓冲区。</p>
+<h3 id="第二节">innodb_buffer_pool 的合理设置</h3>
+
+<p>不要武断的把innodb_buffer pool 配置为内存的50-80% 应具体而定。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">show status like &apos;innodb_buffer_pool_%&apos;</span><br><span class="line"></span><br><span class="line">关注的有</span><br><span class="line">innodb_buffer_pool_pages_data;</span><br><span class="line">innodb_buffer_pool_page_total;</span><br><span class="line">innodb_buffer_pool_read_request;</span><br><span class="line">innodb_buffer_pool_reads;</span><br></pre></td></tr></table></figure>
+<p>然后看</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">读命中率 (innodb_buffer_pool_read_request - innodb_buffer_pool_reads) / innodb_buffer_pool_read_request;</span><br><span class="line">写命中率 innodb_buffer_pool_pages_data /innodb_buffer_pool_page_total;</span><br></pre></td></tr></table></figure>
+<p>如果读写命中率都能在95%以上就很好了。</p>
+<h3 id="第三节">文件打开数的合理设置依据</h3>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">show global status like &apos;open_files&apos;</span><br><span class="line">show variables like &apos;open_file_limit&apos;;</span><br></pre></td></tr></table></figure>
+<p>比较合适的设置是 Open_files / open_files_limit * 100% &lt;= 75;</p>
+<h3 id="第四节">打开表优化设置依据</h3>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">show global status like &apos;open%tables&apos;;</span><br><span class="line">show variable like &apos;table_cache&apos;;</span><br></pre></td></tr></table></figure>
+<p>比较合适</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">open_tables / opende_tables * 100 &gt; 85%;</span><br><span class="line">open_Tables / table_Cache* 100% &lt; 95%；</span><br></pre></td></tr></table></figure>
+<h3 id="第五节">临时表的设置依据</h3>
+
+<p>每次执行语句，关于已经被创造了的临时表的数量，可以这么设置:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">show gloabl status like &apos;created_tmp5&apos;;</span><br><span class="line">Created_tmp_disk_table / Created_tmp_tables * 100% &lt;= 25 %</span><br></pre></td></tr></table></figure>
+<h3 id="第六节">查看索引命中率</h3>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show global status like &apos;key_read%&apos;;</span><br></pre></td></tr></table></figure>
+<p>key_cache_miss_rate = key_Read / key_read_request * 100% 小于 1% 是很好的，<br>意味着1000个请求有一个直接读硬盘。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/06/11/2015-06-11-qing-qiao-shi-shi-tong-ji-yong-hu-shu/" rel="next" title="轻巧实时统计用户数">
+                <i class="fa fa-chevron-left"></i> 轻巧实时统计用户数
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/07/24/2015-07-24-ji-lu-cuo-wu-deng-lu-de-btmpwen-jian/" rel="prev" title="记录错误登陆的 btmp 文件">
+                记录错误登陆的 btmp 文件 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">zheng-ji</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">91</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/zheng-ji" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://weibo.com/1906320835/" target="_blank" title="微博">
+                      
+                        <i class="fa fa-fw fa-globe"></i>微博</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#第一节"><span class="nav-number">1.</span> <span class="nav-text">通用配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第二节"><span class="nav-number">2.</span> <span class="nav-text">innodb_buffer_pool 的合理设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第三节"><span class="nav-number">3.</span> <span class="nav-text">文件打开数的合理设置依据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第四节"><span class="nav-number">4.</span> <span class="nav-text">打开表优化设置依据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第五节"><span class="nav-number">5.</span> <span class="nav-text">临时表的设置依据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第六节"><span class="nav-number">6.</span> <span class="nav-text">查看索引命中率</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zheng-ji</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
