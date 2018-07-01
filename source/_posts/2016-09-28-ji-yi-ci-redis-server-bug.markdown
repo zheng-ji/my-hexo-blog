@@ -3,7 +3,7 @@ layout: post
 title: "记一次使用 redis 协议诡异的bug"
 date: 2016-09-28 08:21
 description: Redis 协议 
-categories: Programe
+categories: Program
 ---
 
 记录昨天定位一个诡异 bug 的过程，我耗费了不少精力，你若有兴趣，请带着一点耐心看完它。

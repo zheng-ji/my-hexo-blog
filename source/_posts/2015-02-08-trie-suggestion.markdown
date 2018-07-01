@@ -4,7 +4,7 @@ title: "实现一个智能提示框功能"
 date: 2015-02-08 13:40
 comments: true
 description: golang trie
-categories: Programe
+categories: Program
 ---
 
 耗了3个夜晚出来的东西.

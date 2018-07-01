@@ -3,7 +3,7 @@ layout: post
 title: "记录使用 Flask 的点滴"
 date: 2015-10-06 13:21
 comments: true
-categories: Programe
+categories: Program
 description: flask 经验
 ---
 

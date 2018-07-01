@@ -3,7 +3,7 @@ layout: post
 title: "轻巧实时统计用户数"
 date: 2015-06-11 23:14
 comments: true
-categories: Programe
+categories: Program
 description: Redis bitset
 ---
 

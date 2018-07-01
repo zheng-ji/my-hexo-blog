@@ -3,7 +3,7 @@ layout: post
 title: "双端链表"
 date: 2017-05-29 23:19
 comments: true
-categories: Programe
+categories: Program
 description: 双端链表
 ---
 

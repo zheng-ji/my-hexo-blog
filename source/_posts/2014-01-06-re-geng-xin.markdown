@@ -3,7 +3,7 @@ layout: post
 title: "热更新"
 date: 2014-01-06 20:58
 comments: true
-categories: Programe
+categories: Program
 ---
   Server 端程序很多时候需要修改配置，这个时候如果重启服务就显得很不友好，代价也高。Nginx和Django，采用的是平滑启动.自动热更新,折腾的东西中遇到这样一个诉求，用python实现的话:
  

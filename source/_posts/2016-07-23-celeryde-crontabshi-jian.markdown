@@ -3,7 +3,7 @@ layout: post
 title: "Celery的Crontab实践"
 date: 2016-07-23 20:19
 comments: true
-categories: Programe
+categories: Program
 description: celery crontab
 ---
 

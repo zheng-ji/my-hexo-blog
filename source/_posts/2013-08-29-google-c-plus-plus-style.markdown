@@ -3,7 +3,7 @@ layout: post
 title: "Google C++ Style"
 date: 2013-05-11 23:12
 comments: true
-categories: Programe
+categories: Program
 ---
 阅读完《Google C++ Style》记录些小要点，很多开源代码都是按照这个规则编码，在了解这些原则之后，个人感觉阅读开源代码应该会省很多力气。
 

@@ -3,7 +3,7 @@ layout: post
 title: "ZeroRPC-基于ZMQ的RPC通讯库"
 date: 2013-09-29 20:56
 comments: true
-categories: Server NetWork
+categories: NetWork
 ---
 [dotCloud](https://www.dotcloud.com/) 是一家具有伟大基因的公司,我认为的伟大是有着开源贡献的情怀，就像Amazon,Google等，而不是国内的某些巨头，虽然作为新兴的云服务提供商还不足以比肩巨头，致力于用技术解决公司的运营问题的同时也回馈社会，让我为之喝彩.我也有理由相信这样的公司会走的更远，因为他们有胸怀有远见，是否重视技术就更不言而喻了.
 

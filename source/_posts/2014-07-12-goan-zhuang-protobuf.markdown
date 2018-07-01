@@ -3,7 +3,7 @@ layout: post
 title: "Go Protobuf"
 date: 2014-07-12 17:39
 comments: true
-categories: Programe 
+categories: Program
 ---
 
 protobuf 是谷歌出品的，质量就无需质疑了，广泛运用于工业界

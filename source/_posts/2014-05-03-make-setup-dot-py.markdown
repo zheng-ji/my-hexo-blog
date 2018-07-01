@@ -3,8 +3,7 @@ layout: post
 title: "制作 setup.py"
 date: 2014-05-03 11:52
 comments: true
-categories: Programe
-keywords: python setuptool
+categories: Program
 description: python setuptool
 ---
 

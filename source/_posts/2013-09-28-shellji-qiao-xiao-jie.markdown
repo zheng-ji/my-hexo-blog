@@ -3,7 +3,7 @@ layout: post
 title: "Bash Shell 技巧小结"
 date: 2013-09-28 22:52
 comments: true
-categories: Programe
+categories: Program
 ---
 
 * 使用 shell 获取进程，并删除

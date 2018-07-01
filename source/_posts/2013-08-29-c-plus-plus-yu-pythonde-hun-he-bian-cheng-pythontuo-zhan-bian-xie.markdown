@@ -3,7 +3,7 @@ layout: post
 title: "C++与Python的混合编程"
 date: 2013-06-08 23:42
 comments: true
-categories: Programe
+categories: Program
 ---
 #### python拓展编写
 C++编写python的拓展。提高程序运行效率

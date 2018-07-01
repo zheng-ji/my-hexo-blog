@@ -3,7 +3,7 @@ layout: post
 title: "返回值的透彻理解"
 date: 2013-04-20 23:06
 comments: true
-categories: Programe
+categories: Program
 ---
 在读《C++编程关键路径》的时候，看到有一章讲的很好。于是分享开来：
 

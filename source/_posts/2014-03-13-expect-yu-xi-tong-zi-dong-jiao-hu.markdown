@@ -3,7 +3,7 @@ layout: post
 title: " Expect 与系统自动交互"
 date: 2014-03-13 23:05
 comments: true
-categories: Programe
+categories: Program
 keywords: expect语言
 description: expect语言
 ---

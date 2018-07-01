@@ -3,7 +3,7 @@ layout: post
 title: "Python 使用 LDAP"
 date: 2015-10-01 09:49
 comments: true
-categories: Programe
+categories: Program
 description: python ldap
 ---
 

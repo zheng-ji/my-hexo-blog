@@ -3,8 +3,7 @@ layout: post
 title: "Mac 安装 Go"
 date: 2014-05-03 09:32
 comments: true
-categories: Programe
-keywords: mac golang
+categories: Program
 description: mac golang
 ---
 

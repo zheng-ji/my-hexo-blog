@@ -3,7 +3,7 @@ layout: post
 title: "MIT 6.824 MapReduce"
 date: 2017-06-04 13:27
 comments: true
-categories: Programe
+categories: Program
 description: 分布式，MapReduce
 ---
 

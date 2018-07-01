@@ -3,7 +3,7 @@ layout: post
 title: "深入 strtok 函数"
 date: 2014-02-05 16:35
 comments: true
-categories: Programe 
+categories: Program
 keywords: strtok
 description: strtok源码
 ---

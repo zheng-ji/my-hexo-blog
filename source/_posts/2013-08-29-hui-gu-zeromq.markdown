@@ -3,7 +3,7 @@ layout: post
 title: "回顾 ZeroMQ"
 date: 2013-06-29 23:25
 comments: true
-categories: NetWork Server 
+categories: NetWork 
 ---
 今日在整理曾经的学习笔记，看到了ZeroMQ，号称史上最快消息内核。曾经在一创业公司用其开发过一些[后端服务](https://github.com/zheng-ji/log2aws)。当时用Go语言实现 源代码,使用的便是[gozmq库](https://github.com/alecthomas/gozmq).这个消息通信框架库的文章有很多，比较著名的当属[一淘](www.searchtb.com/2012/08/zeromq-primer.html)的，（技术文章这样写，的确是让读者舒服 ：））还有官方文档
 
