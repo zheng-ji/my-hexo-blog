@@ -44,3 +44,54 @@ int main( int argc, char** argv )
 }
 ```
 
+* boost::regex
+
+正则匹配
+
+```
+boost::regex_match(str, boost::regex("^1[3|4|5|8][0-9]{9}$")) 
+```
+
+* BOOST 读写锁
+
+```
+#include "boost/thread/shared_mutex.hpp"
+boost::shared_mutex m_rwlock;
+boost::shared_lock<boost::shared_mutex> guard(m_rwlock);读锁
+boost::unique_lock<boost::shared_mutex> guard(m_rwlock);写锁
+
+#include "boost/thread/locks.hpp"
+#include "boost/thread/shared_mutex.hpp"
+using namespace std;
+
+//线程安全
+class NameMap{
+
+    private:
+        boost::shared_mutex m_rwlock;
+        map<uint32_t, string> m_map;
+    public:
+        bool find(uint32_t uin, string & nickname) {
+            boost::shared_lock<boost::shared_mutex> guard(m_rwlock);
+            auto it = m_map.find(uin);
+            if(it == m_map.end()){
+                return false;
+            }   
+            nickname = it->second;
+            return true;
+        }   
+
+        void insert(uint32_t uin, const string & nickname) {
+            boost::unique_lock<boost::shared_mutex> guard(m_rwlock);
+            m_map[uin]=nickname;
+        }   
+
+        size_t size(){
+            boost::shared_lock<boost::shared_mutex> guard(m_rwlock);
+            return m_map.size();
+        }   
+};
+```
+
+
+
