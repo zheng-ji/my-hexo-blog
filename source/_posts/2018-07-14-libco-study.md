@@ -1,10 +1,10 @@
 ---
-title: libco-初学习
+title: Libco
 date: 2018-07-14 16:46:46
 categories: Program
 ---
 
-> libco 是 微信出品的 C/C++ 的协程库, 通过仅有的几个函数接口 co_create/co_resume/co_yield 再配合 co_poll，可以支持同步或者异步的写法
+> Libco 是 微信出品的 C/C++ 的协程库, 通过仅有的几个函数接口 co_create/co_resume/co_yield 再配合 co_poll，可以支持同步或者异步的写法
 
 让我们用官方的 [example_cond.cpp](https://github.com/Tencent/libco/blob/master/example_cond.cpp) 来开启学习之旅
 
