@@ -249,6 +249,166 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/09/21/2013-09-21-leveldbben-di-cun-chu-yin-qing-jing-zhi-de-gong-ju/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2013/09/21/2013-09-21-leveldbben-di-cun-chu-yin-qing-jing-zhi-de-gong-ju/" itemprop="url">leveldb本地存储引擎-精致的工具</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-09-21T09:42:00+08:00">
+                2013-09-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DataBase/" itemprop="url" rel="index">
+                    <span itemprop="name">DataBase</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p> leveldb是一个google实现的非常高效的kv数据库，能够支持billion级别的数据量了。 在这个数量级别下还有着非常高的性能，主要归功于它的良好的设计。特别是LSM算法。 LevelDB 是单进程的服务，性能非常之高，在一台4个Q6600的CPU机器上，每秒钟写数据超过40w，而随机读的性能每秒钟超过10w。@ideawu的ssdb就是基于Leveldb引擎开发的，看起来很NB的样子 </p>
+<p>它只是一个本地存储引擎:</p>
+<ul>
+<li>k/v db library，提供持久化 </li>
+<li>No Server </li>
+<li>No cache<br>于是它精巧。 </li>
+</ul>
+<blockquote>
+<p>talk is cheap ,Show me the Code</p>
+</blockquote>
+<p>简单示范一下C++使用Leveldb ,要先下载leveldb源码编译<a href="https://github.com/basho/leveldb" target="_blank" rel="noopener">code</a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#include&lt;iostream&gt;  </span></span><br><span class="line"><span class="comment">#include&lt;string&gt;  </span></span><br><span class="line"><span class="comment">#include"leveldb/db.h"  </span></span><br><span class="line"></span><br><span class="line">using namespace std;  </span><br><span class="line">using namespace leveldb;  </span><br><span class="line"></span><br><span class="line">int main()  </span><br><span class="line">&#123;  </span><br><span class="line">    DB *db;  </span><br><span class="line">    Options options;  </span><br><span class="line">    options.create_if_missing = true;  </span><br><span class="line">    Status s = DB::Open(options,<span class="string">"/data/leveldb/lvd.db"</span>,&amp;db);  </span><br><span class="line">    <span class="keyword">if</span>(!s.ok())&#123;  </span><br><span class="line">        cerr &lt;&lt; s.ToString() &lt;&lt; endl;</span><br><span class="line">    &#125;  </span><br><span class="line">    string key = <span class="string">"name"</span>,val = <span class="string">"leveldb"</span>;  </span><br><span class="line">    s = db-&gt;Put(WriteOptions(),key,val);  </span><br><span class="line">    <span class="keyword">if</span>(!s.ok())&#123;  </span><br><span class="line">        cerr &lt;&lt; s.ToString() &lt;&lt; endl; </span><br><span class="line">    &#125;  </span><br><span class="line">    s = db-&gt;Get(ReadOptions(),key,&amp;val);  </span><br><span class="line">    <span class="keyword">if</span>(s.ok())&#123;  </span><br><span class="line">        cout &lt;&lt; key &lt;&lt; <span class="string">"="</span> &lt;&lt; val &lt;&lt; endl;  </span><br><span class="line">        s = db-&gt;Put(leveldb::WriteOptions(),"key2",val);  </span><br><span class="line">        <span class="keyword">if</span>(s.ok())&#123;  </span><br><span class="line">            s = db-&gt;Delete(leveldb::WriteOptions(),key);  </span><br><span class="line">            <span class="keyword">if</span>(!s.ok())&#123;  </span><br><span class="line">                cerr &lt;&lt; s.ToString() &lt;&lt; endl;</span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">                                                                                                                                    &#125;</span><br></pre></td></tr></table></figure>
+<p>编译方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">g++ testleveldb.cpp -o main -I./Include -l./ -lleveldb -lrt</span><br></pre></td></tr></table></figure>
+<p>执行./main 之后便可以看到,leveldb的存储文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">zj@hp:~/lvd.db$ tree</span><br><span class="line">.</span><br><span class="line">├── 000003.log</span><br><span class="line">├── CURRENT</span><br><span class="line">├── LOCK</span><br><span class="line">├── LOG</span><br><span class="line">├── MANIFEST-000002</span><br><span class="line">├── sst_0</span><br><span class="line">├── sst_1</span><br><span class="line">├── sst_2</span><br><span class="line">├── sst_3</span><br><span class="line">├── sst_4</span><br><span class="line">├── sst_5</span><br><span class="line">└── sst_6</span><br></pre></td></tr></table></figure>
+<p>很多语言都给予了binding,那么python 也不例外了 ：） <a href="https://github.com/rjpower/py-leveldb" target="_blank" rel="noopener">py-leveldb</a><br>你需要先安装python-leveldb库</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> leveldb</span><br><span class="line">db = leveldb.LevelDB(<span class="string">'./db'</span>)</span><br><span class="line">db.Put(<span class="string">'hello'</span>, <span class="string">'world'</span>)</span><br><span class="line"><span class="keyword">print</span> db.Get(<span class="string">'hello'</span>)</span><br></pre></td></tr></table></figure>
+<p>如果你也和我一样蛋疼，你会不会想会有Server可以调用呢，再看下一篇吧 ：）</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/09/15/2013-09-15-jsonpjie-jue-kua-yu-qing-qiu/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1687,191 +1847,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/06/08/2013-08-29-c-plus-plus-yu-pythonde-hun-he-bian-cheng-pythontuo-zhan-bian-xie/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2013/06/08/2013-08-29-c-plus-plus-yu-pythonde-hun-he-bian-cheng-pythontuo-zhan-bian-xie/" itemprop="url">C++与Python的混合编程</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-08T23:42:00+08:00">
-                2013-06-08
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Program/" itemprop="url" rel="index">
-                    <span itemprop="name">Program</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h4 id="python拓展编写"><a href="#python拓展编写" class="headerlink" title="python拓展编写"></a>python拓展编写</h4><p>C++编写python的拓展。提高程序运行效率<br>我理解的一般流程:</p>
-<ul>
-<li>编写自己的业务逻辑代码本例子如</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">string add(int a,int b)</span><br></pre></td></tr></table></figure>
-<ul>
-<li>包装为python函数，用于解析python传进来的参数</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">PyObject* <span class="title">wrap_add</span><span class="params">(PyObject* self,PyObject* args)</span></span>;</span><br><span class="line"><span class="comment">//解析参数</span></span><br><span class="line">PyArg_ParseTuple(args,<span class="string">"i|i"</span>,&amp;a,&amp;b);</span><br><span class="line"><span class="comment">//构建返回值</span></span><br><span class="line">Py_BuildValue(<span class="string">"s"</span>,add(a,b).c_str());</span><br></pre></td></tr></table></figure>
-<ul>
-<li>编写映射函数</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> PyMethodDef bintMethods[] =</span><br><span class="line">&#123;</span><br><span class="line">        &#123;<span class="string">"add"</span>, wrap_add, METH_VARARGS, <span class="string">"For add"</span>&#125;,</span><br><span class="line">            &#123;<span class="literal">NULL</span>, <span class="literal">NULL</span>,<span class="number">0</span>,<span class="literal">NULL</span>&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>*.模块初始化函数</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">initbint</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    PyObject* m;</span><br><span class="line">    m = Py_InitModule(<span class="string">"bint"</span>, bintMethods);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如下</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"BigNum.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;python2.7/Python.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="built_in">string</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    <span class="function">Bint <span class="title">num1</span><span class="params">(a)</span></span>;</span><br><span class="line">    <span class="function">Bint <span class="title">num2</span><span class="params">(b)</span></span>;</span><br><span class="line">    Bint ans = num1 + num2;</span><br><span class="line">    <span class="keyword">return</span> Bint::write(ans);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="built_in">string</span> <span class="title">multiple</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">    <span class="function">Bint <span class="title">num1</span><span class="params">(a)</span></span>;</span><br><span class="line">    <span class="function">Bint <span class="title">num2</span><span class="params">(b)</span></span>;</span><br><span class="line">    Bint ans = num1 * num2;</span><br><span class="line">    <span class="keyword">return</span> Bint::write(ans);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">PyObject* <span class="title">wrap_add</span><span class="params">(PyObject* self,PyObject* args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a,b;</span><br><span class="line">    <span class="keyword">if</span> (!PyArg_ParseTuple(args,<span class="string">"i|i"</span>,&amp;a,&amp;b))</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">return</span> Py_BuildValue(<span class="string">"s"</span>,add(a,b).c_str());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">PyObject* <span class="title">wrap_mul</span><span class="params">(PyObject* self,PyObject* args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a,b;</span><br><span class="line">    <span class="keyword">if</span> (!PyArg_ParseTuple(args,<span class="string">"i|i"</span>,&amp;a,&amp;b))</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">return</span> Py_BuildValue(<span class="string">"s"</span>,multiple(a,b).c_str());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> PyMethodDef bintMethods[] =</span><br><span class="line">&#123;</span><br><span class="line">    &#123;<span class="string">"add"</span>, wrap_add, METH_VARARGS, <span class="string">"For add"</span>&#125;,</span><br><span class="line">    &#123;<span class="string">"mul"</span>, wrap_mul, METH_VARARGS, <span class="string">"For mul"</span>&#125;,</span><br><span class="line">    &#123;<span class="literal">NULL</span>, <span class="literal">NULL</span>,<span class="number">0</span>,<span class="literal">NULL</span>&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span>              <span class="comment">//不加会导致找不到initbint</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">initbint</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    PyObject* m;</span><br><span class="line">    m = Py_InitModule(<span class="string">"bint"</span>, bintMethods);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>编译成动态链接库</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">all:</span><br><span class="line">    g++ -fPIC -shared BigNum.cpp -o Bint.so</span><br><span class="line">clean:</span><br><span class="line">    rm -rf bint.so</span><br></pre></td></tr></table></figure>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> bint</span><br><span class="line">bint.mul(<span class="number">4000000</span>,<span class="number">5000000</span>)</span><br></pre></td></tr></table></figure>
-<p>GitHub上有<a href="http://innerbrilliant.sinaapp.com/?p=515" target="_blank" rel="noopener">源码</a></p>
-<h3 id="C-调用Python"><a href="#C-调用Python" class="headerlink" title="C++调用Python"></a>C++调用Python</h3><p>python的开发效率之高是毋庸置疑的，C++/C的语言性能之快也是让人羡慕的。这一次，鱼和熊掌是可以兼得的 ：），混合编程，使得我们可以取之所长，游走在C与python之间。很多游戏开发中使用python来实现战斗脚本。</p>
-<ul>
-<li><p>初始化调用<br>Py_Initialize();</p>
-</li>
-<li><p>PyObject<em> PyImport_ImportModule (char </em>name)<br>一般都是通过(pmod = PyImport_ImportModule (“zhengji.app_context”)先来<br>加载一个模块（py脚本),得到一个PyObject *pmod对象,失败返回NULL类型</p>
-</li>
-<li><p>获取某个方法或者类，PyObject <em> o是pmod<br>PyObject</em> PyObject_GetAttrString (PyObject <em>o, char </em>attr_name)</p>
-</li>
-</ul>
-<p><em>调用该方法 callable_object是第二步返回的指针<br>PyObject</em> PyObject_CallFunction (PyObject <em>callable_object, char </em>format, …)</p>
-<ul>
-<li><p>将PyObject<em> 返回char</em><br>char<em> PyString_AsString (PyObject </em>string)</p>
-</li>
-<li><p>结束初始化<br>Py_Finalize();</p>
-</li>
-</ul>
-<p>下面是script.py的内容</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"><span class="comment"># Filename: script.py</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">SetName</span><span class="params">(self,name)</span>:</span></span><br><span class="line">        self._name = name</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">PrintName</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">print</span> self._name</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">        <span class="keyword">print</span> <span class="string">"Hello World\n"</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">world</span><span class="params">(name)</span>:</span></span><br><span class="line">        <span class="keyword">print</span> <span class="string">"name"</span></span><br></pre></td></tr></table></figure>
-<h4 id="C-调用Script-py"><a href="#C-调用Script-py" class="headerlink" title="C++调用Script.py"></a>C++调用Script.py</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;python2.7/Python.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span> <span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//使用python之前，要调用Py_Initialize();这个函数进行初始化</span></span><br><span class="line">    Py_Initialize();</span><br><span class="line"></span><br><span class="line">    PyRun_SimpleString(<span class="string">"import sys"</span>);</span><br><span class="line">    PyRun_SimpleString(<span class="string">"sys.path.append('./')"</span>);</span><br><span class="line"></span><br><span class="line">    PyObject * pModule = <span class="literal">NULL</span>;</span><br><span class="line">    PyObject * pFunc = <span class="literal">NULL</span>;</span><br><span class="line">    PyObject * pClass = <span class="literal">NULL</span>;</span><br><span class="line">    PyObject * pInstance = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//这里是要调用的文件名</span></span><br><span class="line">    pModule = PyImport_ImportModule(<span class="string">"script"</span>);</span><br><span class="line">    <span class="comment">//这里是要调用的函数名</span></span><br><span class="line">    pFunc= PyObject_GetAttrString(pModule, <span class="string">"hello"</span>);</span><br><span class="line">    <span class="comment">//调用函数</span></span><br><span class="line">    PyEval_CallObject(pFunc, <span class="literal">NULL</span>);</span><br><span class="line">    Py_DECREF(pFunc); </span><br><span class="line"></span><br><span class="line">    pFunc = PyObject_GetAttrString(pModule, <span class="string">"world"</span>);</span><br><span class="line">    PyObject_CallFunction(pFunc, <span class="string">"s"</span>, <span class="string">"zhengji"</span>);</span><br><span class="line">    Py_DECREF(pFunc); </span><br><span class="line"></span><br><span class="line">    <span class="comment">//测试调用python的类</span></span><br><span class="line">    pClass = PyObject_GetAttrString(pModule, <span class="string">"Student"</span>);</span><br><span class="line">    <span class="keyword">if</span> (!pClass) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Can't find Student class.\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    pInstance = PyInstance_New(pClass, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">if</span> (!pInstance) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"Can't create Student instance.\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    PyObject_CallMethod(pInstance, <span class="string">"SetName"</span>, <span class="string">"s"</span>,<span class="string">"my family"</span>);</span><br><span class="line">    PyObject_CallMethod(pInstance, <span class="string">"PrintName"</span>,<span class="literal">NULL</span>,<span class="literal">NULL</span>);</span><br><span class="line">    <span class="comment">//调用Py_Finalize，这个根Py_Initialize相对应的。</span></span><br><span class="line">    Py_Finalize();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>编译C++代码</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">g++ zj.cpp -o zj -lpython2.7</span><br></pre></td></tr></table></figure>
-<p>输出结果</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">zj@hp:~/tmp/CcalPy$ ./zj</span><br><span class="line">Hello World</span><br><span class="line">name</span><br><span class="line">my family</span><br></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1922,7 +1897,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">92</span>
+                  <span class="site-state-item-count">93</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
