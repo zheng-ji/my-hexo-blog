@@ -1,9 +1,14 @@
 ---
 layout: post
-title: Valgrind 与 Sanitizer
+title: C++ 调试 - Valgrind, Sanitizer, GDB
 date: 2018-07-14 16:46:46
 categories: Program
 ---
+
+本文介绍各种 C++ 的调试方法
+* valgrind
+* sanitizer
+* gdb
 
 `valgrind` 可用来检测 C/C++ 代码是否内存泄漏。Valgrind 使用起来不需修改目标程序源码。
 
@@ -62,3 +67,56 @@ WRITE of size 4 at 0x60080000bfd0 thread T0
 
 然后用命令指定二进制来查看地址空间, `address2line -e bug`, 输入出错的地址空间，比如 `0x4007e0`, 
 就可以看到他对应的代码了。 
+
+----
+
+说回 GDB, 大多数时候，用的还是最多的。
+
+调试一个程序
+
+```
+gdb <execute_binary>
+```
+
+如果需要传入启动参数，则使用 set args, 例如
+
+```
+set args -i config.file
+```
+
+运行 `run`
+
+当发生异常的时候，执行 `bt`, 就可以看到堆栈信息 `f #num` 指定 frame 查看具体 frame 的信息 `p arg` 打印具体变量值, 下面例子中的 
+
+```
+p __str
+p *this
+```
+
+就是查看变量
+
+```
+Program received signal SIGSEGV, Segmentation fault.
+std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173
+173    /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc: No such file or directory.
+(gdb) bt
+#0  std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173
+#1  0x00000000006476d6 in GetBinLogSynShmPath (this=<optimized out>) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95
+#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112
+#3  0x0000000000641b80 in GetMetaPtr (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.h:68
+#4  MMUxStatBFServer::BeforeMasterRun (this=0x7fffffffe1d0, pvProcArgs=<optimized out>) at mmux/mmuxstatbf/mmuxstatbfserver.h:75
+(gdb) p __str
+$1 = (const std::basic_string<char, std::char_traits<char>, std::allocator<char> > &) @0x20: <error reading variable>
+(gdb) f 1
+#1  0x00000000006476d6 in GetBinLogSynShmPath (this=<optimized out>) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95
+95    mmux/mmuxstatbf/mmuxstatbfconfig.h: No such file or directory.
+(gdb) p  *this
+(gdb) f 2
+#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112
+112    mmux/mmuxstatbf/binlogsyncmgr.cpp: No such file or directory.
+(gdb) info locals
+is_new = 0
+__func__ = "InitShmData"
+(gdb) f 1
+```
+
