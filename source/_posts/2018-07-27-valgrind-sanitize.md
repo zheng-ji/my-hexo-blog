@@ -70,30 +70,32 @@ WRITE of size 4 at 0x60080000bfd0 thread T0
 
 ----
 
-说回 GDB, 大多数时候，用的还是最多的。
+说回 GDB，大多数时候用的还是最多的。
 
-调试一个程序
+用 GDB 调试一个程序
 
 ```
 gdb <execute_binary>
 ```
 
-如果需要传入启动参数，则使用 set args, 例如
+如需传入启动参数，使用 `set args`，例如
 
 ```
 set args -i config.file
 ```
 
-运行 `run`
+开始运行则输入 `run`
 
-当发生异常的时候，执行 `bt`, 就可以看到堆栈信息 `f #num` 指定 frame 查看具体 frame 的信息 `p arg` 打印具体变量值, 下面例子中的 
+当发生异常时，输入 `bt`, 就可以看到堆栈信息了。 
+`f #num` 可以指定 具体frame 查看信息，`p arg` 用来打印变量值。
+下面例子中, 就是查看变量的。
 
 ```
 p __str
 p *this
 ```
 
-就是查看变量
+再次展现完整的例子:
 
 ```
 Program received signal SIGSEGV, Segmentation fault.
