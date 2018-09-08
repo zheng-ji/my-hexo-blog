@@ -249,6 +249,172 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/08/2018-09-08-edit-distance/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/08/2018-09-08-edit-distance/" itemprop="url">NLP - 最小编辑距离</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-08T10:11:42+08:00">
+                2018-09-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/NLP/" itemprop="url" rel="index">
+                    <span itemprop="name">NLP</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>最近工作中，需要求两个单词<code>最小编辑距离</code>，用于判断两个字符串的相近程度。</p>
+<ul>
+<li><a href="#第一节">最小编辑距离是什么</a></li>
+<li><a href="#第二节">解决思路</a></li>
+<li><a href="#第三节">代码演示</a></li>
+</ul>
+<h3 id="最小编辑距离是什么"><a href="#最小编辑距离是什么" class="headerlink" title="最小编辑距离是什么"></a>最小编辑距离是什么</h3><p>允许一个字符串 A ，通过以下三种操作，变换成另一个字符串 B<br>插入一个字符，例如：ab -&gt; abc<br>删除一个字符，例如：abc -&gt; ab<br>替换一个字符，例如：abc -&gt; dbc<br>所需要的最短操作次数，称为最短编辑距离 D，又称 <code>Levenshtein 距离</code><br>故两个字符串的相识度 S = D / Max(len(A)， len(B))<br>使用场景：搜索引擎的单词纠错，扩召回等。</p>
+<h3 id="解决思路"><a href="#解决思路" class="headerlink" title="解决思路"></a>解决思路</h3><p>我发现这个问题，其实也是<a href="https://leetcode.com/problems/edit-distance/" target="_blank" rel="noopener">LeetCode</a>的一道题目， 以前有些枯燥的算法题，应用在工程领域上会显得如此可爱迷人。要解决这个问题，暴力枚举很快会让人绝望。直觉告诉我们要分而治之， 将复杂的问题分解为相似的子问题。</p>
+<p>假设字符串 A 共 m 位，从 A[1] 到 A[m]；字符串 B 共 n 位，从 B[1] 到 B[n]；D[i][j] 表示字符串 A[1]-A[i] 转换为 B[1]-B[j] 的编辑距离。</p>
+<ul>
+<li>规律一: 当 A[i] == B[j] 时，D[i][j] = D[i-1][j-1]，比如 hel -&gt; hal 的编辑距离 = he -&gt; ha 的编辑距离</li>
+<li>规律二: 当 A[i] 不等于 B[j] 时，D[i][j] 等于如下 3 项的最小值:<ul>
+<li>D[i-1][j] + 1（删除 A[i]），比如 xyz  -&gt; abc  的编辑距离 = xy -&gt; abc 的编辑距离 + 1</li>
+<li>D[i][j-1] + 1（插入 B[j])， 比如 xyz -&gt; abc 的编辑距离 = xyzc -&gt; abc 的编辑距离 + 1; 根据规律一， xyzc-&gt;abc 由于最后一个字符是一样的， 所以它的编辑距离等于 xyz-&gt;ab， 因此xyz -&gt; abc 的编辑距离 = xyzc -&gt; abc 的编辑距离 + 1 = xyz-&gt;ab 的编辑距离 + 1。</li>
+<li>D[i-1][j-1] + 1（将 A[i] 替换为 B[j]）， 比如 xyz -&gt; abc 的编辑距离 = xyc -&gt; abc 的编辑距离 + 1 = xy -&gt; ab 的编辑距离 + 1 (根据规律一)</li>
+</ul>
+</li>
+<li>边界：<ul>
+<li>A[i][0] = i， B 字符串为空，表示将 A[1]-A[i] 全部删除，所以编辑距离为 i</li>
+<li>B[0][j] = j， A 字符串为空，表示 A 插入 B[1]-B[j]，所以编辑距离为 j<br>翻译成代码<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">int distance(char *a, char *b, int i, int j)</span><br><span class="line">&#123;</span><br><span class="line">    if (j == 0) return i;</span><br><span class="line">    else if (i == 0) return j;</span><br><span class="line">    else if (a[i-1] == b[j-1]) </span><br><span class="line">        return edit_distance(a, b, i - 1, j - 1);</span><br><span class="line">    else</span><br><span class="line">        return Min3(edit_distance(a, b, i - 1, j) + 1，</span><br><span class="line">                edit_distance(a, b, i, j - 1) + 1，</span><br><span class="line">                edit_distance(a, b, i - 1, j - 1) + 1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="动态规划"><a href="#动态规划" class="headerlink" title="动态规划"></a>动态规划</h2><p>递归被人诟病的就是性能不行，时间复杂度是指数增长的，很多相同的子问题其实是经过了多次求解，用动态规划可以解决这类问题。 而此问题需用一个二维数组来记忆状态图，俗称打表。<br>翻译成代码如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">int distance(char *a, char *b)</span><br><span class="line">&#123;</span><br><span class="line">    int lena = strlen(a);</span><br><span class="line">    int lenb = strlen(b);</span><br><span class="line">    int d[lena+1][lenb+1];</span><br><span class="line">    int i, j;</span><br><span class="line">    for (i = 0; i &lt;= lena; i++)</span><br><span class="line">        d[i][0] = i;</span><br><span class="line">    for (j = 0; j &lt;= lenb; j++)</span><br><span class="line">        d[0][j] = j;</span><br><span class="line">    for (i = 1; i &lt;= lena; i++) </span><br><span class="line">    &#123;</span><br><span class="line">        for (j = 1; j &lt;= lenb; j++) </span><br><span class="line">        &#123;</span><br><span class="line">            if (a[i-1] == b[j-1]) </span><br><span class="line">            &#123;</span><br><span class="line">                d[i][j] = d[i-1][j-1];</span><br><span class="line">            &#125; </span><br><span class="line">            else </span><br><span class="line">            &#123;</span><br><span class="line">                d[i][j] = min_of_three(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+1);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return d[lena][lenb];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/14/2018-07-27-valgrind-sanitize/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1627,152 +1793,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/02/2016-12-02-cgroupxian-zhi-ji-suan-zi-yuan/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/12/02/2016-12-02-cgroupxian-zhi-ji-suan-zi-yuan/" itemprop="url">cgroup 限制计算资源</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-12-02T15:41:00+08:00">
-                2016-12-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/System/" itemprop="url" rel="index">
-                    <span itemprop="name">System</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          cgroup
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/12/02/2016-12-02-cgroupxian-zhi-ji-suan-zi-yuan/">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1823,7 +1843,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">94</span>
+                  <span class="site-state-item-count">95</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1834,7 +1854,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">8</span>
                   <span class="site-state-item-name">categories</span>
                 </a>
               </div>

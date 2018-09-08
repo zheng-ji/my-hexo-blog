@@ -249,6 +249,165 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/09/28/2013-09-28-shellji-qiao-xiao-jie/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2013/09/28/2013-09-28-shellji-qiao-xiao-jie/" itemprop="url">Bash Shell 技巧小结</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-09-28T22:52:00+08:00">
+                2013-09-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Program/" itemprop="url" rel="index">
+                    <span itemprop="name">Program</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <ul>
+<li>使用 shell 获取进程，并删除</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#取得当前进程号</span><br><span class="line">current_pid=$$</span><br><span class="line">#获得特定进程号并重定向到一个临时文件中</span><br><span class="line">ps -aux|grep &quot;/usr/sbin/httpd&quot; | grep -v &quot;grep&quot;| awk &apos;&#123;print $2&#125;&apos; &gt;/tmp/$&#123;current_pid&#125;.txt</span><br><span class="line">#commands start</span><br><span class="line">for pid in `cat /tmp/$&#123;current_pid&#125;.txt`</span><br><span class="line">do</span><br><span class="line">&#123;</span><br><span class="line">    echo &quot;kill -9 $pid&quot;</span><br><span class="line">    kill -9 $pid</span><br><span class="line">&#125;</span><br><span class="line">done </span><br><span class="line">rm -f /tmp/$&#123;current_pid&#125;.txt</span><br></pre></td></tr></table></figure>
+<ul>
+<li>shell 的函数处理</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">func()</span><br><span class="line">&#123;</span><br><span class="line">    echo $a $b $c</span><br><span class="line">    echo $1 $2 $3</span><br><span class="line">&#125;</span><br><span class="line">a=&quot;aaa&quot;</span><br><span class="line">b=&quot;bbb&quot;</span><br><span class="line">c=&quot;ccc&quot;</span><br><span class="line">func $a e f</span><br></pre></td></tr></table></figure>
+<p>函数传参是通过 funcname $para1 $para2 …,函数内部是使用$1,$2,$3<br>结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">aaa bbb ccc</span><br><span class="line">aaa e f</span><br></pre></td></tr></table></figure>
+<ul>
+<li>信号捕捉<br>trap可以使你在脚本中捕捉信号，命令形式为trap name signal(s)<br>其中,name是捕捉到信号以后所采取的一系列操作。实际中，name一般是一个专门用来处理所捕捉信号的函数。name需要用双引号（“”）引起来。signal是待捕捉的信号。<br>最常见的行动包括： 清除临时文件 忽略该信号(如trap “” 23) 询问用户是否终止该脚本进程</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">trap &apos;exitprocess&apos; 2　　　　#捕捉到信号２之后执行exitprocess function</span><br><span class="line">LOOP=0</span><br><span class="line">function exitprocess()</span><br><span class="line">&#123;</span><br><span class="line">    echo &quot;You Just hit &lt;CTRL-C&gt;, at number $LOOP&quot;</span><br><span class="line">    echo &quot;I will now exit&quot;</span><br><span class="line">    exit 1</span><br><span class="line">&#125;</span><br><span class="line">while : # 循环直到捕捉到信号（注意中间的空格） </span><br><span class="line">do</span><br><span class="line">    LOOP=$LOOP+1</span><br><span class="line">    echo $LOOP</span><br><span class="line">    sleep 1</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+<p>给一个文本，获取其中2000 ~ 3000 行怎么破？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat data.txt | tail -n +2000 | head -n 1000 &gt; result.txt</span><br></pre></td></tr></table></figure>
+<p>查找文件是否存在</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find /data -name hello.cpp</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/09/22/2013-09-22-dan-ji-wan-hadoop/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1741,168 +1900,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/06/17/2013-08-29-unix-domain-socket-ipctong-xin-ji-zhi/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2013/06/17/2013-08-29-unix-domain-socket-ipctong-xin-ji-zhi/" itemprop="url">Unix Domain Socket – IPC通信机制</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-17T23:52:00+08:00">
-                2013-06-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/NetWork/" itemprop="url" rel="index">
-                    <span itemprop="name">NetWork</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h4 id="什么是Unix-Domain-Socket"><a href="#什么是Unix-Domain-Socket" class="headerlink" title="什么是Unix Domain Socket"></a>什么是Unix Domain Socket</h4><p>基于socket的框架上发展出一种IPC机制，就是UNIX Domain Socket。虽然网络socket也可用于同一台主机的进程间通讯（通过loopback地址127.0.0.1），但是UNIX Domain Socket用于IPC更有效率：</p>
-<ul>
-<li>不需要经过网络协议栈</li>
-<li>不需要打包拆包、计算校验和、维护序号和应答等</li>
-</ul>
-<p>只是将应用层数据从一个进程拷贝到另一个进程。这是因为，IPC机制本质上是可靠的通讯，而网络协议是为不可靠的通讯设计的。UNIX Domain Socket也提供面向流和面向数据包两种API接口，类似于TCP和UDP，但是面向消息的UNIX Domain Socket也是可靠的，消息既不会丢失也不会顺序错乱。</p>
-<h4 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h4><p>UNIX Domain Socket是全双工的，API接口语义丰富，相比其它IPC机制有明显的优越性，目前已成为使用最广泛的IPC机制，比如X Window服务器和GUI程序之间就是通过UNIX Domain Socket通讯的。</p>
-<p>Nginx通过unix:/socket与fastcgi连接，提升性能,比tcp socket要高效</p>
-<ul>
-<li>在nginx.conf中修改配置为：</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fastcgi_pass unix:/tmp/php-cgi.sock;</span><br><span class="line">#fastcgi_pass 127.0.0.1:9000;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>在php-fpm.conf中修改配置为：</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/tmp/php-cgi.sock</span><br></pre></td></tr></table></figure>
-<p>通信过程</p>
-<img src="/images/2013/08/ipc_unix_socket-300x300.png">
-<p>用Unix domain socket写的Demo</p>
-<p>使用UNIX Domain Socket的过程和网络socket十分相似，也要先调用socket()创建一个socket文件描述符，address family指定为AF_UNIX，type可以选择SOCK_DGRAM或SOCK_STREAM，protocol参数仍然指定为0即可。通常是指定/tmp/目录下的一个文件作为通信路径</p>
-<p>源码demo<a href="https://github.com/zheng-ji/ToyCollection/tree/master/unix-sock" target="_blank" rel="noopener">链接</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1953,7 +1950,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">94</span>
+                  <span class="site-state-item-count">95</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1964,7 +1961,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">8</span>
                   <span class="site-state-item-name">categories</span>
                 </a>
               </div>
