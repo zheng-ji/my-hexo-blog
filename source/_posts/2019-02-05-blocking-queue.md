@@ -6,9 +6,7 @@ categories: Program
 ---
 
 ### STL queue 的实现
-
 STL queue 的 API 
-
 ```
 template <typename T， typename Container = std::deque<T>>
 class queue
@@ -20,18 +18,18 @@ class queue
 };
 ```
 
-API 看起来平淡自然，然而他的背后也有设计的考量的
-1. 用于存储元素的底层容器，容器须满足顺序容器，如 std::vector， std::list， std::dequeue
-2. 在调用 front() 之前，需保证队列不为空， 即 `!empty()` ， 否则会出现未定义错误
+API 看起来平淡自然，他的背后有设计的考量:
+* 用于存储元素的底层容器，容器须满足顺序容器，如 std::vector， std::list， std::dequeue
+* 在调用 front() 之前，需保证队列不为空， 即 `!empty()` ， 否则会出现未定义错误
 
 实际应用中，我们希望队列作为一个基础组件，可以像 Redis Queue 那样
 * 元素出列的操作将会阻塞，直到队列不为空， 在多线程环境下，我们通常不需要 front() 操作，而只是调用 pop() 将元素返回，操作是阻塞的
-* 允许并发地访问队列
+* 允许并发访问队列
 
 ### 阻塞队列实现
 
-* 使用条件变量来实现阻塞，要是队列是空的，那么 pop() 操作将会阻塞
-* 提供了一个 try_pop() 操作，要是队列是空的， try_pop()将会立即返回而不会阻塞
+* 使用条件变量实现阻塞，要是队列是空的，则 pop() 操作将会阻塞队列
+* 提供了一个 `try_pop()` 操作，要是队列是空的， `try_pop()` 将会立即返回而不会阻塞
 
 ```c
 #include <queue>
@@ -103,4 +101,3 @@ class ThreadQueue
         }  
 };
 ```
-
