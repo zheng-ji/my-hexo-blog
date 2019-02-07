@@ -249,6 +249,177 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/09/29/2013-09-29-zerorpcshi-ge-hao-dong-xi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2013/09/29/2013-09-29-zerorpcshi-ge-hao-dong-xi/" itemprop="url">ZeroRPC-基于ZMQ的RPC通讯库</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-09-29T20:56:00+08:00">
+                2013-09-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/NetWork/" itemprop="url" rel="index">
+                    <span itemprop="name">NetWork</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://www.dotcloud.com/" target="_blank" rel="noopener">dotCloud</a> 是一家具有伟大基因的公司,我认为的伟大是有着开源贡献的情怀，就像Amazon,Google等，而不是国内的某些巨头，虽然作为新兴的云服务提供商还不足以比肩巨头，致力于用技术解决公司的运营问题的同时也回馈社会，让我为之喝彩.我也有理由相信这样的公司会走的更远，因为他们有胸怀有远见，是否重视技术就更不言而喻了.</p>
+<p>这篇文章旨在介绍由<strong>dotCloud</strong>开源的<a href="https://github.com/dotcloud/zerorpc-python" target="_blank" rel="noopener">ZeroRpc</a>,在dotcloud公司的基础服务得到很大应用，在阅读其manual之后更是被其简洁明了的使用方法所吸引 </p>
+<blockquote>
+<p>ZeroRPC is a modern communication layer for distributed systems built on top of ZeroMQ,</p>
+</blockquote>
+<p>一直以来我一直喜欢python 的简洁，用过ZeroMQ做过网络通讯方面的编程，也使用RPC 做过远程过程调用，上次使用LevelDB的RPC是用python的[第三方库] (<a href="https://github.com/dotcloud/zerorpc-python" target="_blank" rel="noopener">https://github.com/dotcloud/zerorpc-python</a>)</p>
+<p>这次刚好在Github上面看到这样的好玩意，便想与大家分享,ZeroRpc不仅仅支持代码层面的调用，也支持CLi， 这种设计本身就很有弹性.赞！</p>
+<p>安装zerorpc</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo pip install zerorpc</span><br></pre></td></tr></table></figure>
+<p>在还没开始看demo之前<br>我们需要了解ZeroRpc是由三层架构组成：</p>
+<ul>
+<li>传输层是使用<a href="http://www.zeromq.org/" target="_blank" rel="noopener">ZMQ</a> 以及msgpack(<a href="http://msgpack.org/),基于ZeroMQ的分布式通讯层,通讯的数据被MsgPack" target="_blank" rel="noopener">http://msgpack.org/),基于ZeroMQ的分布式通讯层,通讯的数据被MsgPack</a> 序列化过所以更快</li>
+<li>消息层,比较复杂,处理heartbeat, multiplexing, and events.</li>
+<li>RPC层:处理请求,响应</li>
+</ul>
+<p>官方的<a href="http://zerorpc.dotcloud.com/" target="_blank" rel="noopener">文档</a>给出以下demo</p>
+<p>####server.py #####</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> zerorpc</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HelloRPC</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(self, name)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Hello, %s"</span> % name</span><br><span class="line"></span><br><span class="line">s = zerorpc.Server(HelloRPC())</span><br><span class="line">s.bind(<span class="string">"tcp://0.0.0.0:4242"</span>)</span><br><span class="line">s.run()</span><br></pre></td></tr></table></figure>
+<p>####client.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> zerorpc</span><br><span class="line"></span><br><span class="line">c = zerorpc.Client()</span><br><span class="line">c.connect(<span class="string">"tcp://127.0.0.1:4242"</span>)</span><br><span class="line"><span class="keyword">print</span> c.hello(<span class="string">"RPC"</span>)</span><br></pre></td></tr></table></figure>
+<p>client也可用命令行代替</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zerorpc tcp://<span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">4242</span> hello RPC</span><br></pre></td></tr></table></figure>
+<p>够简明易懂了吧<br>再来一个返回连续字节流的例子</p>
+<p>####server.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> zerorpc</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StreamingRPC</span><span class="params">(object)</span>:</span></span><br><span class="line"><span class="meta">    @zerorpc.stream</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">streaming_range</span><span class="params">(self, fr, to, step)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> xrange(fr, to, step)</span><br><span class="line"></span><br><span class="line">s = zerorpc.Server(StreamingRPC())</span><br><span class="line">s.bind(<span class="string">"tcp://0.0.0.0:4242"</span>)</span><br><span class="line">s.run()</span><br></pre></td></tr></table></figure>
+<p>####client.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> zerorpc</span><br><span class="line"></span><br><span class="line">c = zerorpc.Client()</span><br><span class="line">c.connect(<span class="string">"tcp://127.0.0.1:4242"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> item <span class="keyword">in</span> c.streaming_range(<span class="number">10</span>, <span class="number">20</span>, <span class="number">2</span>):</span><br><span class="line">    <span class="keyword">print</span> item</span><br></pre></td></tr></table></figure>
+<p>client也可用命令行代替,–json 表示头部是一个json对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zerorpc tcp://127.0.0.1:4242 streaming_range 10 20 2 --json</span><br></pre></td></tr></table></figure>
+<p>Happy Hacking</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/09/28/2013-09-28-shellji-qiao-xiao-jie/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1721,185 +1892,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/06/20/2013-08-30-fen-bu-shi-chu-li-kuang-jia-gearman/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2013/06/20/2013-08-30-fen-bu-shi-chu-li-kuang-jia-gearman/" itemprop="url">分布式处理框架-Gearman</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-20T00:00:00+08:00">
-                2013-06-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Server/" itemprop="url" rel="index">
-                    <span itemprop="name">Server</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>近日折腾Gearman.有兴趣可以参考阅读<a href="http://www.gearman.org/" target="_blank" rel="noopener">这个</a>,<a href="http://pythonhosted.org/gearman/" target="_blank" rel="noopener">这个</a>，还有<a href="http://www.s135.com/dips/" target="_blank" rel="noopener">这个</a></p>
-<p>官方说法：</p>
-<blockquote>
-<p>Gearman provides a generic application framework to farm out work to other machines or processes that are better suited to do the work. It allows you to do work in parallel, to load balance processing, and to call functions between languages. It can be used in a variety of applications, from high-availability web sites to the transport of database replication events. In other words, it is the nervous system for how distributed processing communicates. </p>
-</blockquote>
-<p>Gearman是一个提供机器与进程之间相互协作的通信框架。可以让你并行处理作业以及负载均衡，提供不同的语言接口使得不同语言可以互相协作。用处很广泛，从web站点到数据库Replication事件。换句话说，是一个分布式的通讯框架</p>
-<h4 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h4><ul>
-<li><p>开源：<br>  多语言支持：Gearman支持的语言种类非常丰富。让我们能够用一种语言来编写Worker程序，但是用另外一种语言编写Client程序。</p>
-</li>
-<li><p>灵活：不必拘泥于固定的形式。您可以采用你希望的任何形式，例如 Map/Reduce。</p>
-</li>
-<li><p>快速：Gearman的协议非常简单，并且有一个用C语言实现的，经过优化的服务器，保证应用的负载在非常低的水平。</p>
-</li>
-<li><p>可植入：因为Gearman非常小巧、灵活置入到现有的任何系统中。</p>
-</li>
-<li><p>无单点故障：Gearman可扩展系统，可以避免系统的失败。</p>
-</li>
-</ul>
-<h4 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h4><p>听上去很诱惑的样子了。试想下：<br>我们的服务器有IO读写密集型，存储密集型，CPU使用不频繁，内存使用不频繁。如果我们能根据业务充分调动起各个服务器的特点。实现服务器的最大价值。Gearman可以登上舞台 ：）</p>
-<p>图解工作流<br><img src="/images/2013/08/gearman.png"></p>
-<h4 id="Gearman-有三个角色"><a href="#Gearman-有三个角色" class="headerlink" title="Gearman 有三个角色"></a>Gearman 有三个角色</h4><ul>
-<li>Job Server:中央调度，消息中心，负载均衡</li>
-<li>Client：发起Job,可由任何语言编写</li>
-<li>Worker：负责执行Job，执行业务流</li>
-</ul>
-<p>实操安装Gearman（以ubuntu为例子）,默认的端口4730</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install gearman</span><br></pre></td></tr></table></figure>
-<p>安装python-gearman</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install python-gearman</span><br></pre></td></tr></table></figure>
-<p>用python编写<br>worker代码</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#worker.py</span><br><span class="line">import os</span><br><span class="line">import gearman</span><br><span class="line">import math </span><br><span class="line"> </span><br><span class="line">class CustomGearmanWorker(gearman.GearmanWorker):</span><br><span class="line">   def on_job_execute(self, current_job):</span><br><span class="line">          return super(CustomGearmanWorker, self).on_job_execute(current_job)</span><br><span class="line">def task_callback(gearman_worker, job):</span><br><span class="line">    print job.data</span><br><span class="line">    return job.data + &quot; has received&quot; </span><br><span class="line">                   </span><br><span class="line">new_worker = CustomGearmanWorker([&apos;127.0.0.1:4730&apos;])</span><br><span class="line">new_worker.register_task(&quot;ping&quot;, task_callback)</span><br><span class="line">new_worker.work()</span><br></pre></td></tr></table></figure>
-<p>client代码</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python2.7</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="comment"># # file: client.py</span></span><br><span class="line"><span class="keyword">from</span> gearman <span class="keyword">import</span> GearmanClient</span><br><span class="line">new_client = GearmanClient([<span class="string">'127.0.0.1:4730'</span>])</span><br><span class="line">current_request = new_client.submit_job(<span class="string">'ping'</span>, <span class="string">'foo'</span>)</span><br><span class="line">new_result = current_request.result</span><br><span class="line"><span class="keyword">print</span> new_resul</span><br></pre></td></tr></table></figure>
-<p>结果</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">foo has received</span><br></pre></td></tr></table></figure>
-<p>用Go测试下</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#gearman的Go库,内有example</span><br><span class="line">go get https://github.com/mikespook/gearman-go</span><br></pre></td></tr></table></figure>
-<p>Happy Hacking!</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1950,7 +1942,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">95</span>
+                  <span class="site-state-item-count">96</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -2016,7 +2008,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
