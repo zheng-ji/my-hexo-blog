@@ -249,6 +249,163 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/08/16/2013-08-30-jing-ran-ye-yong-dao-liao-oracle/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2013/08/16/2013-08-30-jing-ran-ye-yong-dao-liao-oracle/" itemprop="url">竟然也用到了Oracle</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-08-16T20:25:00+08:00">
+                2013-08-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DataBase/" itemprop="url" rel="index">
+                    <span itemprop="name">DataBase</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h4 id="Oracle初印象"><a href="#Oracle初印象" class="headerlink" title="Oracle初印象"></a>Oracle初印象</h4><p>曾经阿里的去O化搞得满城风雨，，随后很多企业也开始跟风去除Oracle，让Oracle这样的企业都为之咳嗽了一阵子。有兴趣的朋友可以看看王坚博士的文章。作为一个开源软件热爱者，首先接触到的一定是Mysql， 随后才是MongoDB,Redis,LevelDb。无论如何是怎么也想不到会去接触Oracle，就像我再也没有机会也不会去使用3.5英寸软盘的样子,因为这样会让我感觉到世界在倒退。</p>
+<p>先知言：”存在即合理”。也就为以后的遇见埋下伏笔。果然，由于历史原因，庞大的业务体系下，我终于还是遇见了它，带着对伟大数据库敬仰的心探索了一把。说实话，当你习惯了简单的Mysql之类的思维之后，接触Oracle就有点纠结了。我愿意称其为接触另一种新思维方式。没有比这更值得鼓舞人心的动力了 ：）</p>
+<img src="/images/2013/08/oracle.png">
+<p>我做的事情是在游戏数据操作中做一个抽象的操作类。涉及框架代码的改造，这过程有点DT。我从事的工作大部分是C++开发这过程着实feel到了“生命太短，远离C++” 涉及到多重继承，虚析构函数，同个父类冲突，属性可见性,抽象类可用。Debug 了两天。还好有GDB这种家伙。<br>Oracle查询流程</p>
+<p>简单描述下普通的Oracle建立连接以及查询的顺序,使用的是OCCI （Oracle的C++接口）:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">//创建enviroment变量</span><br><span class="line">Environment *env = Environment::createEnvironment( Environment::DEFAULT);</span><br><span class="line">//创建连接</span><br><span class="line">Connection *conn = env-&gt;createConnection( userName, password, connectString);</span><br><span class="line">//创建 查询描述符</span><br><span class="line">Statement *stmt = conn-&gt;createStatement( &quot;SELECT blobcol FROM mytable&quot;);</span><br><span class="line">//执行查询，返回结果集</span><br><span class="line">ResultSet *rs = stmt-&gt;executeQuery();</span><br><span class="line">//关闭查询，环境变量</span><br><span class="line">stmt-&gt;closeResultSet(rs);</span><br><span class="line">conn-&gt;terminateStatement(stmt);</span><br><span class="line">env-&gt;terminateConnection(conn);</span><br><span class="line">Environment::terminateEnvironment(env);</span><br></pre></td></tr></table></figure>
+<p>蛋蛋的疼</p>
+<p>期间遇到了Oracle 好多奇形怪状的问题。尽管如此，我喜欢这样折腾自己 :) 是不是有点变态。</p>
+<ul>
+<li>创建环境变量类指明多线程使用。该任务需要多线程执行的，如果不特别声明多线程执行，如果不特别指明的话会奔溃，我纠结了一天就是因为没有指明这个常量。这在Mysql是没有见到的吧</li>
+<li>连接管理。Oracle的连接关闭很重要。查询任务完成后要及时关闭连接。如果不关闭连接和环境句柄，程序就会有很大的潜在bug,程序执行期间也会奔溃。这过程中自己写了连接管理模块。特别处理了多线程处理时的构造与析构。</li>
+</ul>
+<p>以下是连接管理类的代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">#include&lt;string.h&gt;</span><br><span class="line">using namespace oracle::occi;</span><br><span class="line">class COraclconn</span><br><span class="line">&#123;</span><br><span class="line">    public :</span><br><span class="line"></span><br><span class="line">        COraclconn (const std::string &amp; user, const std:: string&amp; password,</span><br><span class="line">                const std:: string&amp; dbname)</span><br><span class="line">        &#123;</span><br><span class="line">            m_status = false;</span><br><span class="line">            env = NULL;</span><br><span class="line">            conn = NULL;</span><br><span class="line">            stmt = NULL;</span><br><span class="line">            env = Environment::createEnvironment( Environment::THREADED_MUTEXED);</span><br><span class="line">            if (! env)</span><br><span class="line">            &#123;</span><br><span class="line">                env = NULL;</span><br><span class="line">                return;</span><br><span class="line">            &#125;</span><br><span class="line">            conn = env-&gt; createConnection(user, password, dbname);</span><br><span class="line">            if (! conn)</span><br><span class="line">            &#123;</span><br><span class="line">                conn = NULL;</span><br><span class="line">                return;</span><br><span class="line">            &#125;</span><br><span class="line">            m_status = true;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ~COraclconn ()</span><br><span class="line">        &#123;</span><br><span class="line">            if ( conn &amp;&amp; stmt)</span><br><span class="line">                conn-&gt; terminateStatement( stmt);</span><br><span class="line">            if ( env &amp;&amp; conn)</span><br><span class="line">                env-&gt; terminateConnection( conn);</span><br><span class="line">            if ( env)</span><br><span class="line">                Environment:: terminateEnvironment( env);</span><br><span class="line">        &#125;</span><br><span class="line">        Statement * getstmt( const string&amp; sql)</span><br><span class="line">        &#123;</span><br><span class="line">            if (! m_status)</span><br><span class="line">                return NULL;</span><br><span class="line">            if ( stmt)</span><br><span class="line">            &#123;</span><br><span class="line">                conn-&gt; terminateStatement( stmt);</span><br><span class="line">                stmt = NULL;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">            stmt = conn-&gt; createStatement(sql);</span><br><span class="line">            if (! stmt)</span><br><span class="line">            &#123;</span><br><span class="line">                stmt = NULL;</span><br><span class="line">                m_status = false;</span><br><span class="line">            &#125;</span><br><span class="line">            return stmt;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    protected :</span><br><span class="line">        bool m_status;</span><br><span class="line">        Environment *env ;</span><br><span class="line">        Connection *conn ;</span><br><span class="line">        Statement *stmt ;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>还好我做的是封装SQL，对于其诡异的语法可以不用涉及到。相信每个热爱技术的人儿碰到写相对非业务的代码会感到充实愉快的吧。</p>
+<p>Happy Hacking ：）</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/07/15/2013-08-30-feng-pei-zhi-lu/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -280,7 +437,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-07-15T19:32:00+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-07-15T19:32:00+08:00">
                 2013-07-15
               </time>
             
@@ -431,7 +588,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-29T23:25:00+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-29T23:25:00+08:00">
                 2013-06-29
               </time>
             
@@ -585,7 +742,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-20T00:00:00+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-20T00:00:00+08:00">
                 2013-06-20
               </time>
             
@@ -764,7 +921,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-17T23:52:00+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-17T23:52:00+08:00">
                 2013-06-17
               </time>
             
@@ -926,7 +1083,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-12T23:31:00+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-12T23:31:00+08:00">
                 2013-06-12
               </time>
             
@@ -1077,7 +1234,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-08T23:42:00+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-06-08T23:42:00+08:00">
                 2013-06-08
               </time>
             
@@ -1262,7 +1419,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-05-30T23:20:00+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-05-30T23:20:00+08:00">
                 2013-05-30
               </time>
             
@@ -1415,7 +1572,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-05-11T23:12:00+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-05-11T23:12:00+08:00">
                 2013-05-11
               </time>
             
@@ -1602,7 +1759,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-04-20T23:06:00+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-04-20T23:06:00+08:00">
                 2013-04-20
               </time>
             
@@ -1706,151 +1863,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2013/04/02/2013-04-02-zhe-teng/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2013/04/02/2013-04-02-zhe-teng/" itemprop="url">折腾</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-04-02T13:53:00+00:00">
-                2013-04-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Life/" itemprop="url" rel="index">
-                    <span itemprop="name">Life</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <img src="/images/2013/panda.jpg">
-<p>这天我被折腾疯了</p>
-<p>开始博客迁移，从 <a href="http:innerbrilliant.sinaapp.com" target="_blank" rel="noopener">http:innerbrilliant.sinaapp.com</a> 迁移至 <a href="http://zheng-ji.info" target="_blank" rel="noopener">zheng-ji.info</a></p>
-<p>文档式编程的感觉爽 ：）</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1901,7 +1913,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">98</span>
+                  <span class="site-state-item-count">99</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1918,6 +1930,15 @@
               </div>
             
 
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
             
 
           </nav>

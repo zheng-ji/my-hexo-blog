@@ -249,6 +249,196 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/04/2019-05-04-groupcache-source-note/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/05/04/2019-05-04-groupcache-source-note/" itemprop="url">groupCache 源码阅读</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-04T12:11:42+08:00">
+                2019-05-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Program/" itemprop="url" rel="index">
+                    <span itemprop="name">Program</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>自从写了 C++，这一年多时间是没有再碰到 Go 代码，五一期间想通过阅读 Go 源码来找回熟悉的味道。选择了 GroupCache 仔细研读，收获颇丰，记下笔记以作备忘。</p>
+<h3 id="groupCache-简介"><a href="#groupCache-简介" class="headerlink" title="groupCache 简介"></a>groupCache 简介</h3><p><a href="https://github.com/golang/groupcache" target="_blank" rel="noopener">groupcache</a>是一个缓存库，需自己实现 main 函数，groupcache 既是服务器，也是客户端。作者称在某些方面替代 memcache，groupcache 只能 get，不能设置过期时间，只能通过lru淘汰最近最少访问的数据。</p>
+<p>当在本地 groupcache 缓存中没有查找的数据时，通过一致性哈希，查找到该 key 所对应的 peer 服务器，再通过HTTP 协议，从 peer 服务器上获取数据。</p>
+<p>过程中也做了一个优化：当多个客户端同时访问 cache 中不存在的 Key 时，会导致多个客户端从后端获取数据并同时插入 cache 中，相同 Key 情况下，groupcache 只会有一个客户端从后端获取数据，其他客户端阻塞，直到第一个客户端获取到数据之后，再返回给多个客户端。</p>
+<p><img src="/images/2019/groupcache.png" alt=""></p>
+<h3 id="GroupCache-源码组成"><a href="#GroupCache-源码组成" class="headerlink" title="GroupCache 源码组成"></a>GroupCache 源码组成</h3><p>groupCache 源码巧妙利用 Go 的Interface，将核心组件做了抽离：</p>
+<ul>
+<li><a href="https://github.com/golang/groupcache/blob/master/lru/lru.go" target="_blank" rel="noopener">lru</a></li>
+<li><a href="https://github.com/golang/groupcache/blob/master/singleflight/singleflight.go" target="_blank" rel="noopener">SingleFlight</a></li>
+<li><a href="https://github.com/golang/groupcache/blob/master/consistenthash/consistenthash.go" target="_blank" rel="noopener">consistenHash</a></li>
+<li>ByteView,Sink</li>
+<li><a href="https://github.com/golang/groupcache/blob/master/http.go" target="_blank" rel="noopener">HTTPPool</a></li>
+<li><a href="https://github.com/golang/groupcache/blob/master/groupcache.go" target="_blank" rel="noopener">groupcache.go</a> 中对这些核心组件搭积木，成就了这份精彩的代码。</li>
+</ul>
+<p>让我们先来探索各个组件，最后再做一次高屋建瓴的俯瞰。</p>
+<h4 id="内存-LRU"><a href="#内存-LRU" class="headerlink" title="内存 LRU"></a>内存 LRU</h4><p>Least Recently Used 的缩写，即最近最少使用的页面置换算法。借助内建容器 <code>container/list</code> 及 哈希表实现 <code>Cache</code> 结构，不保证并发安全。list 的元素 <code>Entry</code> 是一个结构体，也是实际承载键值对的载体，当列表容器元素个数达到最大数量，触发用户自定义的 <code>OnEvicted</code> 函数。 </p>
+<p>那 cache 是怎么做到 LRU？</p>
+<ul>
+<li>Add: 新增一个元素，先查找该元素是否在哈希表? 若不在，则将元素写入哈希表，并移动元素到 list 头部；如果列表长度超过 MaxEntries，则删除列表尾部元素。</li>
+<li>Get： 查找元素，如果找到则移动元素到 list 头部，始终保证最近使用的元素放在头部。</li>
+<li>Remove: 将元素从列表和哈希表一同删除, 并触发用户自定义 OnEvicted 函数。</li>
+</ul>
+<h4 id="一致性哈希"><a href="#一致性哈希" class="headerlink" title="一致性哈希"></a>一致性哈希</h4><p>目标是解决互联网中的server 的扩展和收缩，不至于导致大量的 Key 失效。核心数据结构是一个哈希表，键为Int，值为对应的 Key。</p>
+<p>通过哈希函数把元素映射到整型索引值，对索引值升序排列，返回的节点是与这个索引值最近的顺时针节点。<br>默认选择的哈希算法是 crc32.CheckSumIEEE，为了使得环形列表更平衡，加入了虚拟节点，其中<code>replicas</code></p>
+<p>执行虚拟节点个数 。</p>
+<p>我们来一窥其工作流程：</p>
+<ul>
+<li>Add: 添加节点到哈希表，对 Key 取 replicas 个 hash 值，将得到哈希值都映射到同个 Key，与此同时哈希值升序排列。</li>
+<li>Get：查找 Key 对应的节点，保证一致性，计算 Key 的 hash 值，然后在有序列表中二分查找，找到离他最近的顺时针的索引，在哈希表中返回此索引对应的 Key。</li>
+</ul>
+<h4 id="SingleFlight"><a href="#SingleFlight" class="headerlink" title="SingleFlight"></a>SingleFlight</h4><p><code>call</code> 存来调用的返回值和返回码。利用 sync.Wait 会阻塞的特性，控制并发性，直到所有任务完成才继续执行。结合 Group 结构来看就更明了，Group 有一个哈希表，其值是 <code>call</code>结构, 对于给定的 Key，保证同一时间只存在一个后端调用，这么设计的好处是在缓存穿透的时候只有一个请求访问后端，避免雪崩。</p>
+<h4 id="ByteView-amp-Sink"><a href="#ByteView-amp-Sink" class="headerlink" title="ByteView &amp; Sink"></a>ByteView &amp; Sink</h4><p>ByteView 是 groupCache 内部 value 的数据结构，结构体支持两种类型的元素，[]byte 或者 string 方式，并提供了 Copy 的方法。</p>
+<p>Sink 是一个接口类型，包含了 <code>SetString</code>, <code>SetBytes</code> <code>SetProto</code> <code>view</code> 四种方法，每个实现该接口的 Struct 也额外实现了 SetView ,通过他们，value 会被保存成 byteview 的格式。</p>
+<h4 id="Peer-amp-HTTPPool"><a href="#Peer-amp-HTTPPool" class="headerlink" title="Peer &amp; HTTPPool"></a>Peer &amp; HTTPPool</h4><p>peers.go 要与 http.go 结合起来看，不得不说抽象的很高级，或者说很绕。</p>
+<p>HTTPPool 是实现了 http.Handler 和 PeerPicker 接口的节点池。他的组成如下：</p>
+<ul>
+<li><code>peers</code> : 一致性哈希生成器，返回 Key 对应的服务器节点</li>
+<li><code>httpGetters map[string]*httpGetter</code> 对于每个服务器，均定义了 httpclient，用于获取远程服务器的数据<br>其中 httpGetter 就是一个ProtoGetter,  它实现了Get 方法</li>
+<li><code>BasePath</code> <code>指定外部服务器节点的请求的地址 默认是 &quot;/_groupcache/&quot;. 通过 http.Handle 在NewHTTPPool 中注册</code></li>
+<li><code>Replicas</code> ：一致性哈希虚拟节点的数量</li>
+</ul>
+<h4 id="groupcache-获取数据流程"><a href="#groupcache-获取数据流程" class="headerlink" title="groupcache 获取数据流程"></a>groupcache 获取数据流程</h4><p>当客户端连上 groupcache 获取数据</p>
+<ul>
+<li>如果本地有缓存，包括 mainCache (本机节点的缓存数据)，hotCache（属于其他节点的数据缓存的热数据）有所需要的数据，则直接返回。</li>
+<li>如果没有，则通过一致性哈希函数判断这个 key 所对应的节点( PickPeer(key) )，通过 http 从这个节点上获取数据( getFromPeer )，如果这个节点上有需要的数据，则通过 http 回复给之前的那个 groupcache。</li>
+<li>如果节点上也没有所需要的数据，则 groupcache 从后端数据源(数据库或者文件)获取数据，并将数据保存在本地 mainCache，并返回给客户端；其中 <code>getLocallly</code> 函数是利用 NewGroup 时传进去的 Getter，在调用这个 Getter 的 Get 函数从数据源获取数据。</li>
+<li>hotCache 存的是本节点没有的，但是访问频繁的数据， 避免多次网络请求， 热点数据采用10%随机概率，效果可能不理想。</li>
+<li>loadGroup 是singleFlight的实现，确保同一时间每个 Key 只有一次访问后端。</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/22/2019-03-08-es-skill/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -280,7 +470,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+08:00">
                 2019-02-22
               </time>
             
@@ -440,7 +630,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+08:00">
                 2019-02-22
               </time>
             
@@ -612,7 +802,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-05T16:11:42+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-05T16:11:42+08:00">
                 2019-02-05
               </time>
             
@@ -769,7 +959,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-08T10:11:42+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-08T10:11:42+08:00">
                 2018-09-08
               </time>
             
@@ -935,7 +1125,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T16:46:46+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T16:46:46+08:00">
                 2018-07-14
               </time>
             
@@ -1107,7 +1297,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T16:46:46+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T16:46:46+08:00">
                 2018-07-14
               </time>
             
@@ -1280,7 +1470,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-01T13:50:03+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-01T13:50:03+08:00">
                 2018-07-01
               </time>
             
@@ -1442,7 +1632,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-17T15:49:00+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-17T15:49:00+08:00">
                 2018-06-17
               </time>
             
@@ -1596,7 +1786,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-07-13T09:04:00+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-07-13T09:04:00+08:00">
                 2017-07-13
               </time>
             
@@ -1698,152 +1888,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/04/2017-06-04-mit-6-dot-824-mapreduce/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/06/04/2017-06-04-mit-6-dot-824-mapreduce/" itemprop="url">MIT 6.824 MapReduce</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-06-04T13:27:00+00:00">
-                2017-06-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Program/" itemprop="url" rel="index">
-                    <span itemprop="name">Program</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          分布式，MapReduce
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/06/04/2017-06-04-mit-6-dot-824-mapreduce/">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1894,7 +1938,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">98</span>
+                  <span class="site-state-item-count">99</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1911,6 +1955,15 @@
               </div>
             
 
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
             
 
           </nav>
