@@ -249,6 +249,180 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/13/2019-06-13-es-backup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/13/2019-06-13-es-backup/" itemprop="url">ElasticSearch 备份</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-13T12:11:42+00:00">
+                2019-06-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Program/" itemprop="url" rel="index">
+                    <span itemprop="name">Program</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>ElasticSearch 有 两种备份方法</p>
+<ul>
+<li>ES 快照备份</li>
+<li>ElasticDump 备份</li>
+</ul>
+<h3 id="ES-快照备份"><a href="#ES-快照备份" class="headerlink" title="ES 快照备份"></a>ES 快照备份</h3><p> ElasticSearch 自带备份的<a href="https://www.elastic.co/guide/cn/elasticsearch/guide/current/backing-up-your-cluster.html" target="_blank" rel="noopener">方法</a>，数据量大的时候，通常推荐这种方法。<br>集群的环境下，需要依赖 共享文件系统 NFS，AWS S3， HDFS 文件系统等，以下用HDFS 为例。</p>
+<p>备份到 HDFS 需要 <a href="https://artifacts.elastic.co/downloads/elasticsearch-plugins/repository-hdfs/repository-hdfs-6.6.1.zip" target="_blank" rel="noopener">repository-hdfs</a> 插件的支持。下载下来放在了 <code>/tmp</code> 并安装，重启 ES，变可享用了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./elasticsearch-plugin install file:///tmp/repository-hdfs-6.2.1.zip</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>构建仓库，以下创建一个名为 hdfs_backup 的仓库, 我们计划将数据备份到 <code>hdfs://&lt;hadoop-domain.com&gt;:9000/data/es_backup</code> 下面，如无意外会返回 <code>{&quot;acknowlege&quot;:&quot;true&quot;}</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">curl -XPUT http://&lt;Port:IP&gt;/_snapshot/hdfs_backup -H &apos;Content-Type:application/json&apos; -d&apos;</span><br><span class="line">&#123;  </span><br><span class="line">  &quot;type&quot;: &quot;hdfs&quot;,  </span><br><span class="line">  &quot;settings&quot;: &#123;</span><br><span class="line">    &quot;uri&quot;: &quot;hdfs://&lt;hadoop-domain.com&gt;:9000&quot;,</span><br><span class="line">    &quot;path&quot;: &quot;/data/es_backup&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;&apos;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>选定索引备份，例如选择了 <code>student</code>索引，如无意外会返回 <code>{&quot;acknowlege&quot;:&quot;true&quot;}</code>，如果你希望命令阻塞直到备份完成。可以在 URL 尾部加上 wait_for_completion=true</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl -XPUT http://&lt;Port:IP&gt;/_snapshot/hdfs_backup/snapshot_1 -H &apos;ContentType:application/json&apos; -d&apos;</span><br><span class="line">&#123;</span><br><span class="line">    &quot;indices&quot;: &quot;student&quot;</span><br><span class="line">&#125;&apos;</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>可使用以下命令查看备份的进度:</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">curl -XGET &quot;http://&lt;Port:IP&gt;/_snapshot/hdfs_backup/*&quot; &apos;</span><br><span class="line">&#123;</span><br><span class="line">  &quot;snapshots&quot; : [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;snapshot&quot; : &quot;snapshot_1&quot;,</span><br><span class="line">      &quot;uuid&quot; : &quot;kTdQRNs6RbO9LZ0LCfXLYg&quot;,</span><br><span class="line">      &quot;version_id&quot; : 6060199,</span><br><span class="line">      &quot;version&quot; : &quot;6.6.1&quot;,</span><br><span class="line">      &quot;indices&quot; : [</span><br><span class="line">        &quot;student&quot;</span><br><span class="line">      ],</span><br><span class="line">      &quot;include_global_state&quot; : true,</span><br><span class="line">      &quot;state&quot; : &quot;IN_PROGRESS&quot;,</span><br><span class="line">      &quot;start_time&quot; : &quot;2019-06-13T07:41:47.556Z&quot;,</span><br><span class="line">      &quot;start_time_in_millis&quot; : 1560411707556,</span><br><span class="line">      &quot;end_time&quot; : &quot;1970-01-01T00:00:00.000Z&quot;,</span><br><span class="line">      &quot;end_time_in_millis&quot; : 0,</span><br><span class="line">      &quot;duration_in_millis&quot; : -1560411707556,</span><br><span class="line">      &quot;failures&quot; : [ ],</span><br><span class="line">      &quot;shards&quot; : &#123;</span><br><span class="line">        &quot;total&quot; : 0,</span><br><span class="line">        &quot;failed&quot; : 0,</span><br><span class="line">        &quot;successful&quot; : 0</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>如何使用快照来恢复</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl -XPOST &quot;http://&lt;Port:IP&gt;/_snapshot/hdfs_backup/snapshot_1/_restore?wait_for_completion=true&quot; -H &apos;Content-Type: application/json&apos; -d&apos;</span><br><span class="line">&#123;</span><br><span class="line">	&quot;indices&quot;: &quot;student&quot;,&quot;rename_replacement&quot;: &quot;student&quot;</span><br><span class="line">&#125;&apos;</span><br></pre></td></tr></table></figure>
+<h3 id="使用-ElasticDump-来备份"><a href="#使用-ElasticDump-来备份" class="headerlink" title="使用 ElasticDump 来备份"></a>使用 ElasticDump 来备份</h3><p>  <a href="https://github.com/taskrabbit/elasticsearch-dump" target="_blank" rel="noopener">elasticdump</a> 需要 nodeJs 的环境，适用于小数量的备份。其原理是用了 ES 的 <a href="https://www.elastic.co/guide/cn/elasticsearch/guide/current/scroll.html" target="_blank" rel="noopener">Scroll</a> 接口</p>
+<ul>
+<li>将 mapping 和 数据备份，并 gzip 到本地盘</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">elasticdump --input=http://&lt;Port:IP&gt;/student  --type=data --limit=10000  --output=$ | gzip &gt; student.json.gz</span><br><span class="line">elasticdump --input=http://&lt;Port:IP&gt;/student --output=stduent_mapping.json --type=mapping</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建好mapping 之后，恢复数据， 如果是 gzip 格式的，需要先解压</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">elasticdump --input=./student.json --output=http://&lt;Port:IP&gt;/student</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/04/2019-05-04-groupcache-source-note/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -280,7 +454,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-04T12:11:42+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-04T04:11:42+00:00">
                 2019-05-04
               </time>
             
@@ -470,7 +644,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T08:11:42+00:00">
                 2019-02-22
               </time>
             
@@ -630,7 +804,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T08:11:42+00:00">
                 2019-02-22
               </time>
             
@@ -802,7 +976,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-05T16:11:42+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-05T08:11:42+00:00">
                 2019-02-05
               </time>
             
@@ -959,7 +1133,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-08T10:11:42+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-08T02:11:42+00:00">
                 2018-09-08
               </time>
             
@@ -1094,178 +1268,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/14/2018-07-27-valgrind-sanitize/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/14/2018-07-27-valgrind-sanitize/" itemprop="url">C++ 调试 - Valgrind, Sanitizer, GDB</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T16:46:46+08:00">
-                2018-07-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Program/" itemprop="url" rel="index">
-                    <span itemprop="name">Program</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文介绍各种 C++ 的调试方法</p>
-<ul>
-<li>valgrind</li>
-<li>sanitizer</li>
-<li>gdb</li>
-</ul>
-<p><code>valgrind</code> 可用来检测 C/C++ 代码是否内存泄漏。Valgrind 使用起来不需修改目标程序源码。</p>
-<p>用一个明显有内存泄漏的代码来演示</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;malloc.h&gt;</span><br><span class="line"></span><br><span class="line">int main(void) &#123;</span><br><span class="line">    int *p = NULL;</span><br><span class="line">    p = malloc(10 * sizeof(int));</span><br><span class="line">    free(p);</span><br><span class="line">    *p = 3;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>编译成二进制, 然后用 valgrind 检测</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">g++ -g -o bug main.c</span><br><span class="line">valgrind --tool=memcheck --leak-check=full --log-file=memchk.log ./bug</span><br></pre></td></tr></table></figure>
-<p>valgrind 会做一次 <code>全身检查</code>, 如果有内存泄漏， 我们要关注的是 LeakSummary:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">LeakSummary</span><br><span class="line">definitely lost: 确定有内存泄漏，表示在程序退出时，该内存无法回收.</span><br><span class="line">indirectly lost: 间接内存泄漏，比如结构体中定义的指针指向的内存无法回收；</span><br><span class="line">possibly lost： 可能出现内存泄漏，比如程序退出时，没有指针指向一块内存的首地址了</span><br><span class="line">still reachable: 程序没主动释放内存，在退出时候该内存仍能访问到，比如全局 new 的对象没 delete，操作系统会回收</span><br></pre></td></tr></table></figure>
-<hr>
-<p>再推荐另一个工具 <a href="https://github.com/google/sanitizers" target="_blank" rel="noopener">sanitizer</a>, 同样是上面的示例代码，</p>
-<p>用 <code>-fsanitize=address</code> 编译, 然后执行二进制，会打印出错的地址空间。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gcc -fsanitize=address -g -o bug main.c</span><br><span class="line">./bug</span><br></pre></td></tr></table></figure>
-<p>显示出错的地址空间</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">==8035== ERROR: AddressSanitizer: heap-use-after-free on address 0x60080000bfd0 at pc 0x4007e1 bp 0x7ffeb17cf780 sp 0x7ffeb17cf778</span><br><span class="line">WRITE of size 4 at 0x60080000bfd0 thread T0</span><br><span class="line">    #0 0x4007e0 (/data1/mm64/levizheng/QQMail/study/test_debug/a+0x4007e0)</span><br><span class="line">    #1 0x7f6808337c04 (/usr/lib64/libc-2.17.so+0x21c04)</span><br><span class="line">    #2 0x4006b8 (/data1/mm64/levizheng/QQMail/study/test_debug/a+0x4006b8)</span><br></pre></td></tr></table></figure>
-<p>然后用命令指定二进制来查看地址空间, <code>address2line -e bug</code>, 输入出错的地址空间，比如 <code>0x4007e0</code>,<br>就可以看到他对应的代码了。 </p>
-<hr>
-<p>说回 GDB，大多数时候用的还是最多的。</p>
-<p>用 GDB 调试一个程序</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gdb &lt;execute_binary&gt;</span><br></pre></td></tr></table></figure>
-<p>如需传入启动参数，使用 <code>set args</code>，例如</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set args -i config.file</span><br></pre></td></tr></table></figure>
-<p>开始运行则输入 <code>run</code></p>
-<p>当发生异常时，输入 <code>bt</code>, 就可以看到堆栈信息了。<br><code>f #num</code> 可以指定 具体frame 查看信息，<code>p arg</code> 用来打印变量值。<br>下面例子中, 就是查看变量的。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">p __str</span><br><span class="line">p *this</span><br></pre></td></tr></table></figure>
-<p>再次展现完整的例子:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">Program received signal SIGSEGV, Segmentation fault.</span><br><span class="line">std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173</span><br><span class="line">173    /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc: No such file or directory.</span><br><span class="line">(gdb) bt</span><br><span class="line">#0  std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173</span><br><span class="line">#1  0x00000000006476d6 in GetBinLogSynShmPath (this=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95</span><br><span class="line">#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112</span><br><span class="line">#3  0x0000000000641b80 in GetMetaPtr (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.h:68</span><br><span class="line">#4  MMUxStatBFServer::BeforeMasterRun (this=0x7fffffffe1d0, pvProcArgs=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfserver.h:75</span><br><span class="line">(gdb) p __str</span><br><span class="line">$1 = (const std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; &amp;) @0x20: &lt;error reading variable&gt;</span><br><span class="line">(gdb) f 1</span><br><span class="line">#1  0x00000000006476d6 in GetBinLogSynShmPath (this=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95</span><br><span class="line">95    mmux/mmuxstatbf/mmuxstatbfconfig.h: No such file or directory.</span><br><span class="line">(gdb) p  *this</span><br><span class="line">(gdb) f 2</span><br><span class="line">#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112</span><br><span class="line">112    mmux/mmuxstatbf/binlogsyncmgr.cpp: No such file or directory.</span><br><span class="line">(gdb) info locals</span><br><span class="line">is_new = 0</span><br><span class="line">__func__ = &quot;InitShmData&quot;</span><br><span class="line">(gdb) f 1</span><br></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/14/2018-07-14-libco-study/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1297,7 +1299,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T16:46:46+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T08:46:46+00:00">
                 2018-07-14
               </time>
             
@@ -1439,6 +1441,178 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/14/2018-07-27-valgrind-sanitize/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/14/2018-07-27-valgrind-sanitize/" itemprop="url">C++ 调试 - Valgrind, Sanitizer, GDB</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T08:46:46+00:00">
+                2018-07-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Program/" itemprop="url" rel="index">
+                    <span itemprop="name">Program</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文介绍各种 C++ 的调试方法</p>
+<ul>
+<li>valgrind</li>
+<li>sanitizer</li>
+<li>gdb</li>
+</ul>
+<p><code>valgrind</code> 可用来检测 C/C++ 代码是否内存泄漏。Valgrind 使用起来不需修改目标程序源码。</p>
+<p>用一个明显有内存泄漏的代码来演示</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;malloc.h&gt;</span><br><span class="line"></span><br><span class="line">int main(void) &#123;</span><br><span class="line">    int *p = NULL;</span><br><span class="line">    p = malloc(10 * sizeof(int));</span><br><span class="line">    free(p);</span><br><span class="line">    *p = 3;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译成二进制, 然后用 valgrind 检测</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">g++ -g -o bug main.c</span><br><span class="line">valgrind --tool=memcheck --leak-check=full --log-file=memchk.log ./bug</span><br></pre></td></tr></table></figure>
+<p>valgrind 会做一次 <code>全身检查</code>, 如果有内存泄漏， 我们要关注的是 LeakSummary:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">LeakSummary</span><br><span class="line">definitely lost: 确定有内存泄漏，表示在程序退出时，该内存无法回收.</span><br><span class="line">indirectly lost: 间接内存泄漏，比如结构体中定义的指针指向的内存无法回收；</span><br><span class="line">possibly lost： 可能出现内存泄漏，比如程序退出时，没有指针指向一块内存的首地址了</span><br><span class="line">still reachable: 程序没主动释放内存，在退出时候该内存仍能访问到，比如全局 new 的对象没 delete，操作系统会回收</span><br></pre></td></tr></table></figure>
+<hr>
+<p>再推荐另一个工具 <a href="https://github.com/google/sanitizers" target="_blank" rel="noopener">sanitizer</a>, 同样是上面的示例代码，</p>
+<p>用 <code>-fsanitize=address</code> 编译, 然后执行二进制，会打印出错的地址空间。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gcc -fsanitize=address -g -o bug main.c</span><br><span class="line">./bug</span><br></pre></td></tr></table></figure>
+<p>显示出错的地址空间</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">==8035== ERROR: AddressSanitizer: heap-use-after-free on address 0x60080000bfd0 at pc 0x4007e1 bp 0x7ffeb17cf780 sp 0x7ffeb17cf778</span><br><span class="line">WRITE of size 4 at 0x60080000bfd0 thread T0</span><br><span class="line">    #0 0x4007e0 (/data1/mm64/levizheng/QQMail/study/test_debug/a+0x4007e0)</span><br><span class="line">    #1 0x7f6808337c04 (/usr/lib64/libc-2.17.so+0x21c04)</span><br><span class="line">    #2 0x4006b8 (/data1/mm64/levizheng/QQMail/study/test_debug/a+0x4006b8)</span><br></pre></td></tr></table></figure>
+<p>然后用命令指定二进制来查看地址空间, <code>address2line -e bug</code>, 输入出错的地址空间，比如 <code>0x4007e0</code>,<br>就可以看到他对应的代码了。 </p>
+<hr>
+<p>说回 GDB，大多数时候用的还是最多的。</p>
+<p>用 GDB 调试一个程序</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gdb &lt;execute_binary&gt;</span><br></pre></td></tr></table></figure>
+<p>如需传入启动参数，使用 <code>set args</code>，例如</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set args -i config.file</span><br></pre></td></tr></table></figure>
+<p>开始运行则输入 <code>run</code></p>
+<p>当发生异常时，输入 <code>bt</code>, 就可以看到堆栈信息了。<br><code>f #num</code> 可以指定 具体frame 查看信息，<code>p arg</code> 用来打印变量值。<br>下面例子中, 就是查看变量的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">p __str</span><br><span class="line">p *this</span><br></pre></td></tr></table></figure>
+<p>再次展现完整的例子:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">Program received signal SIGSEGV, Segmentation fault.</span><br><span class="line">std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173</span><br><span class="line">173    /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc: No such file or directory.</span><br><span class="line">(gdb) bt</span><br><span class="line">#0  std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173</span><br><span class="line">#1  0x00000000006476d6 in GetBinLogSynShmPath (this=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95</span><br><span class="line">#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112</span><br><span class="line">#3  0x0000000000641b80 in GetMetaPtr (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.h:68</span><br><span class="line">#4  MMUxStatBFServer::BeforeMasterRun (this=0x7fffffffe1d0, pvProcArgs=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfserver.h:75</span><br><span class="line">(gdb) p __str</span><br><span class="line">$1 = (const std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; &amp;) @0x20: &lt;error reading variable&gt;</span><br><span class="line">(gdb) f 1</span><br><span class="line">#1  0x00000000006476d6 in GetBinLogSynShmPath (this=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95</span><br><span class="line">95    mmux/mmuxstatbf/mmuxstatbfconfig.h: No such file or directory.</span><br><span class="line">(gdb) p  *this</span><br><span class="line">(gdb) f 2</span><br><span class="line">#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112</span><br><span class="line">112    mmux/mmuxstatbf/binlogsyncmgr.cpp: No such file or directory.</span><br><span class="line">(gdb) info locals</span><br><span class="line">is_new = 0</span><br><span class="line">__func__ = &quot;InitShmData&quot;</span><br><span class="line">(gdb) f 1</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/01/2018-07-01-boost-utility/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1470,7 +1644,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-01T13:50:03+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-01T05:50:03+00:00">
                 2018-07-01
               </time>
             
@@ -1632,7 +1806,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-17T15:49:00+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-17T07:49:00+00:00">
                 2018-06-17
               </time>
             
@@ -1742,152 +1916,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/07/13/2017-07-13-httpserver-graceful-shutdown-in-go/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/07/13/2017-07-13-httpserver-graceful-shutdown-in-go/" itemprop="url">HTTPServer 优雅关闭</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-07-13T09:04:00+08:00">
-                2017-07-13
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Program/" itemprop="url" rel="index">
-                    <span itemprop="name">Program</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          graceful shutdown
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/07/13/2017-07-13-httpserver-graceful-shutdown-in-go/">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1938,7 +1966,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">99</span>
+                  <span class="site-state-item-count">100</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1960,7 +1988,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
