@@ -249,6 +249,160 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/03/2019-08-03-protobuffer-extension/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/03/2019-08-03-protobuffer-extension/" itemprop="url">ProtoBuffer 自定义 Option 扩展</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-08-03T12:11:42+08:00">
+                2019-08-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Program/" itemprop="url" rel="index">
+                    <span itemprop="name">Program</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>相信使用过 ProtoBuffer 的同学都不陌生以下的定义, 一个 Kid ProtoBuffer 对象，有一个 <code>age</code>字段，且默认值是7。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">message Kid</span><br><span class="line">&#123;</span><br><span class="line">   optional uint32 age = 1 [default=7];</span><br><span class="line">   optional uint32 score = 2 ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运用 PB 的 默认 Option 扩展，我们可以指定一些行为，比如上面的默认初始值。</p>
+<p>我们想实现自定义的选项，比如，我想指定一种<code>上报</code>的 Option, 对于此类 Option, 我就将这种字段上报给老师。那么定义的 ProtoBuffer 大概会长这样:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">message Kid</span><br><span class="line">&#123;</span><br><span class="line">   optional uint32 age = 1 [default=7];</span><br><span class="line">   optional uint32 score = 2 [action = Report];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>是否可行呢？幸运的是 PB 有自定义Option的机制，使得我们的设想变成可能。</p>
+<h4 id="如何实现自定义扩展"><a href="#如何实现自定义扩展" class="headerlink" title="如何实现自定义扩展"></a>如何实现自定义扩展</h4><p>1:  注册 FieldOption , <code>action.proto</code> 就是定义好了 Option 的 Proto 文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">package action;</span><br><span class="line">import &quot;google/protobuf/descriptor.proto&quot;;</span><br><span class="line"></span><br><span class="line">enum ActionType &#123;</span><br><span class="line">    REPORT = 1;</span><br><span class="line">&#125;</span><br><span class="line">extend google.protobuf.FieldOptions &#123;</span><br><span class="line">    optional ActionType rule = 12345 [default = REPORT];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>2： 应用 Option<br>import 定义, 就可以轻易用上了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">package Kid                                                                          </span><br><span class="line">import &quot;action.proto&quot;;                                                                    </span><br><span class="line">message person </span><br><span class="line">&#123;</span><br><span class="line">   optional uint32 age = 1;</span><br><span class="line">   optional int32 age = 2[(action.rule) = REPORT]         </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="怎么通过反射获取-OPTION-的值呢"><a href="#怎么通过反射获取-OPTION-的值呢" class="headerlink" title="怎么通过反射获取 OPTION 的值呢"></a>怎么通过反射获取 OPTION 的值呢</h4><p>通过 descriptor &amp;&amp; reflection 我们可以得到 option 的值 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;google/protobuf/message.h&gt;</span><br><span class="line">#include &lt;google/protobuf/descriptor.h&gt;</span><br><span class="line">#include &quot;kid.pb.h&quot;</span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    Kid obj;</span><br><span class="line">    obj.set_age(12);</span><br><span class="line"></span><br><span class="line">    auto descriptor = obj.GetDescriptor();</span><br><span class="line">    auto reflection = obj.GetReflection();</span><br><span class="line">	// 通过 FieldName 获取字段</span><br><span class="line">    auto  idField = descriptor-&gt;FindFieldByName(&quot;age&quot;);</span><br><span class="line">    reflection-&gt;SetInt32(&amp;obj, idField, 18);</span><br><span class="line">    for (unsigned int i = 0; i &lt; descriptor-&gt;field_count(); ++i) </span><br><span class="line">    &#123;</span><br><span class="line">        auto field = descriptor-&gt;field(i);</span><br><span class="line"></span><br><span class="line">        cout &lt;&lt; &quot;field_is_repeated:&quot; &lt;&lt; field-&gt;is_repeated() &lt;&lt; endl;</span><br><span class="line">        // 获取 field_num</span><br><span class="line">        cout &lt;&lt; &quot;field_num:&quot; &lt;&lt; field-&gt;number() &lt;&lt; endl;</span><br><span class="line">        // 获取 Option cout &lt;&lt; &quot;optiona value:&quot; &lt;&lt; field-&gt;options().GetExtension(action::rule) &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">        switch (field-&gt;type()) </span><br><span class="line">        &#123;</span><br><span class="line">            case ::google::protobuf::FieldDescriptor::TYPE_INT32:</span><br><span class="line">                cout &lt;&lt; &quot;int type, value:&quot; &lt;&lt; reflection-&gt;GetInt32(obj, field);</span><br><span class="line">                break;</span><br><span class="line">            case ::google::protobuf::FieldDescriptor::TYPE_FLOAT:</span><br><span class="line">                cout &lt;&lt; &quot;float type, value:&quot; &lt;&lt; reflection-&gt;GetFloat(obj, field);</span><br><span class="line">                break;</span><br><span class="line">            default:</span><br><span class="line">                cout &lt;&lt; &quot;not found&quot; &lt;&lt; endl;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以上的例子，通过反射我们也可以在不知道字段的名字情况下，知道它的值，类型等信息。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/13/2019-06-13-es-backup/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -613,170 +767,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/22/2019-03-08-es-skill/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/02/22/2019-03-08-es-skill/" itemprop="url">ElasticSearch 手记</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+08:00">
-                2019-02-22
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Program/" itemprop="url" rel="index">
-                    <span itemprop="name">Program</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>其实在几年前就接触 Eleasticsearch 了，当时作为一个SA，并没有好好了解它的用法。最近在做搜索的功能，才发觉曾经对力量一无所知。</p>
-<h3 id="Mapping-创建-Schema"><a href="#Mapping-创建-Schema" class="headerlink" title="Mapping 创建 Schema"></a>Mapping 创建 Schema</h3><p>ES 使用前需要定义 mapping，相当于 MySQL 的 TableSchema，在创建 mapping 的时候，配置 type 的dynamic=strict，禁止未定义字段自动被添加到索引。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">curl -XPUT &quot;$URL/mall_goods_v1/?pretty&quot; -H &apos;Content-Type:application/json&apos; -d&apos;</span><br><span class="line">&#123;</span><br><span class="line">    &quot;mappings&quot; : &#123;</span><br><span class="line">        &quot;goods&quot;: &#123;</span><br><span class="line">            &quot;dynamic&quot;: &quot;strict&quot;,</span><br><span class="line">                &quot;properties&quot;: &#123;</span><br><span class="line">                    &quot;item_name&quot;: &#123;</span><br><span class="line">                        &quot;type&quot;: &quot;text&quot;,</span><br><span class="line">                        &quot;analyzer&quot;: &quot;ik_max_word&quot;,</span><br><span class="line">                        &quot;search_analyzer&quot;: &quot;ik_smart&quot;</span><br><span class="line">                    &#125;,</span><br><span class="line">                    &quot;item_code&quot;: &#123;</span><br><span class="line">                        &quot;type&quot;: &quot;keyword&quot;</span><br><span class="line">                    &#125;,</span><br><span class="line">                    &quot;status&quot;: &#123;</span><br><span class="line">                        &quot;type&quot;: &quot;integer&quot;</span><br><span class="line">                    &#125;, </span><br><span class="line">                    &quot;start_time&quot;:&#123;</span><br><span class="line">                        &quot;type&quot; : &quot;date&quot;</span><br><span class="line">                    &#125;, </span><br><span class="line">                    &quot;group_ids&quot;: &#123;</span><br><span class="line">                        &quot;type&quot;: &quot;text&quot;,</span><br><span class="line">                        &quot;analyzer&quot;: &quot;whitespace&quot;</span><br><span class="line">                    &#125;,</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;&apos;;</span><br></pre></td></tr></table></figure>
-<h3 id="中文分词"><a href="#中文分词" class="headerlink" title="中文分词"></a>中文分词</h3><p>ES提供了IK分词器应对中文分词，它有两种分词模式：</p>
-<ul>
-<li>ik_max_word:会将文本做最细粒度的拆分</li>
-<li>ik_smart:会做最粗粒度的拆分<br>两种分词器使用的最佳实践是：索引时用ik_max_word，在搜索时用 ik_smart。<br>索引时最大化的将文章内容分词，搜索时更精确的搜索到想要的结果。</li>
-</ul>
-<h3 id="别名"><a href="#别名" class="headerlink" title="别名"></a>别名</h3><p>给 ES 的 Index 起一个别名(alias) 能优雅解决两个索引无缝切换的问题，此功能在某些场景下非常使用。<br>举个例子:<br>如果发现 student_v1 的 Index 有问题,需重建一个 student_v2 的 Index, 我们可以给 student_v1 赋予一个别名 student，外界使用别名访问这个索引， 建好 student_v2 之后，将这个 student 别名指向 student_v2, 这样就可在外部无感知的情况下完成切换。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -XPOST &quot;$URL/_aliases?pretty&quot; -H &apos;Content-Type:application/json&apos;  -d&apos; </span><br><span class="line">&#123; &quot;actions&quot; : [ &#123; &quot;add&quot; : &#123; &quot;index&quot; : &quot;student_v2&quot;, &quot;alias&quot; : &quot;student&quot; &#125; &#125; ] &#125; &apos;</span><br></pre></td></tr></table></figure>
-<h3 id="ES-查询技巧"><a href="#ES-查询技巧" class="headerlink" title="ES 查询技巧"></a>ES 查询技巧</h3><ul>
-<li><p>只要不是 text 类型的字段，尽量使用 filter 过滤，因为它支持结果缓存，性能最佳。全文检索必须使用 must 而不是 filter，否则将导致 filter 缓存失效。</p>
-</li>
-<li><p>自然语言检索应该用 “match” 查询，”term” 是不分词当成整体的。</p>
-</li>
-<li><p>通过 termvector 查看一个字段的切分状况，用来辅助我们的查询语句是否正确</p>
-</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">curl -XGET -H &apos;Content-Type:application/json&apos; &quot;http://$URL/mall_goods/goods/12954895599938508532/_termvectors?pretty&quot; -d &apos; &#123;</span><br><span class="line">    &quot;fields&quot; : [ &quot;item_name&quot;],</span><br><span class="line">    &quot;offsets&quot; : true,</span><br><span class="line">    &quot;payloads&quot; : true,</span><br><span class="line">    &quot;positions&quot; : true,</span><br><span class="line">    &quot;term_statistics&quot; : true,</span><br><span class="line">    &quot;field_statistics&quot; : true</span><br><span class="line">&#125; &apos;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>版本号更新<br>Elasticsearch 是分布式的。当文档创建、更新或删除时， 新版本的文档必须复制到集群中的其他节点。Elasticsearch 也是异步和并发的，这意味着这些复制请求被并行发送，并且到达目的地时也许顺序是乱的 。 Elasticsearch 需要一种方法确保文档的旧版本不会覆盖新的版本。 检查当前 _version 是否 小于 指定的版本号。 如果请求成功，外部的版本号作为文档的新 _version 进行存储.<br>常见的方法是通过增加 version_type = external , 然后使用时间戳做版本号更新来保证旧文档不会覆盖新文档。</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PUT /website/blog/2?version=5&amp;version_type=external</span><br><span class="line">&#123;</span><br><span class="line">  &quot;title&quot;: &quot;My first external blog entry&quot;,</span><br><span class="line">  &quot;text&quot;:  &quot;Starting to get the hang of this...&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/22/2019-02-22-ac-automachine/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -901,6 +891,170 @@
 <li>如果经过的节点是模式字符串的结尾。意味着匹配到该模式串，并将该字符下标记录下来。</li>
 </ul>
 <h3 id="写了一个库"><a href="#写了一个库" class="headerlink" title="写了一个库"></a>写了一个库</h3><p>实现了AC自动机的 Go 语言版本。<a href="https://github.com/zheng-ji/goAcAutoMachine" target="_blank" rel="noopener">goAcAutoMachine</a>, 支持中文搜索。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/22/2019-03-08-es-skill/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/02/22/2019-03-08-es-skill/" itemprop="url">ElasticSearch 手记</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+08:00">
+                2019-02-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Program/" itemprop="url" rel="index">
+                    <span itemprop="name">Program</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>其实在几年前就接触 Eleasticsearch 了，当时作为一个SA，并没有好好了解它的用法。最近在做搜索的功能，才发觉曾经对力量一无所知。</p>
+<h3 id="Mapping-创建-Schema"><a href="#Mapping-创建-Schema" class="headerlink" title="Mapping 创建 Schema"></a>Mapping 创建 Schema</h3><p>ES 使用前需要定义 mapping，相当于 MySQL 的 TableSchema，在创建 mapping 的时候，配置 type 的dynamic=strict，禁止未定义字段自动被添加到索引。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">curl -XPUT &quot;$URL/mall_goods_v1/?pretty&quot; -H &apos;Content-Type:application/json&apos; -d&apos;</span><br><span class="line">&#123;</span><br><span class="line">    &quot;mappings&quot; : &#123;</span><br><span class="line">        &quot;goods&quot;: &#123;</span><br><span class="line">            &quot;dynamic&quot;: &quot;strict&quot;,</span><br><span class="line">                &quot;properties&quot;: &#123;</span><br><span class="line">                    &quot;item_name&quot;: &#123;</span><br><span class="line">                        &quot;type&quot;: &quot;text&quot;,</span><br><span class="line">                        &quot;analyzer&quot;: &quot;ik_max_word&quot;,</span><br><span class="line">                        &quot;search_analyzer&quot;: &quot;ik_smart&quot;</span><br><span class="line">                    &#125;,</span><br><span class="line">                    &quot;item_code&quot;: &#123;</span><br><span class="line">                        &quot;type&quot;: &quot;keyword&quot;</span><br><span class="line">                    &#125;,</span><br><span class="line">                    &quot;status&quot;: &#123;</span><br><span class="line">                        &quot;type&quot;: &quot;integer&quot;</span><br><span class="line">                    &#125;, </span><br><span class="line">                    &quot;start_time&quot;:&#123;</span><br><span class="line">                        &quot;type&quot; : &quot;date&quot;</span><br><span class="line">                    &#125;, </span><br><span class="line">                    &quot;group_ids&quot;: &#123;</span><br><span class="line">                        &quot;type&quot;: &quot;text&quot;,</span><br><span class="line">                        &quot;analyzer&quot;: &quot;whitespace&quot;</span><br><span class="line">                    &#125;,</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;&apos;;</span><br></pre></td></tr></table></figure>
+<h3 id="中文分词"><a href="#中文分词" class="headerlink" title="中文分词"></a>中文分词</h3><p>ES提供了IK分词器应对中文分词，它有两种分词模式：</p>
+<ul>
+<li>ik_max_word:会将文本做最细粒度的拆分</li>
+<li>ik_smart:会做最粗粒度的拆分<br>两种分词器使用的最佳实践是：索引时用ik_max_word，在搜索时用 ik_smart。<br>索引时最大化的将文章内容分词，搜索时更精确的搜索到想要的结果。</li>
+</ul>
+<h3 id="别名"><a href="#别名" class="headerlink" title="别名"></a>别名</h3><p>给 ES 的 Index 起一个别名(alias) 能优雅解决两个索引无缝切换的问题，此功能在某些场景下非常使用。<br>举个例子:<br>如果发现 student_v1 的 Index 有问题,需重建一个 student_v2 的 Index, 我们可以给 student_v1 赋予一个别名 student，外界使用别名访问这个索引， 建好 student_v2 之后，将这个 student 别名指向 student_v2, 这样就可在外部无感知的情况下完成切换。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -XPOST &quot;$URL/_aliases?pretty&quot; -H &apos;Content-Type:application/json&apos;  -d&apos; </span><br><span class="line">&#123; &quot;actions&quot; : [ &#123; &quot;add&quot; : &#123; &quot;index&quot; : &quot;student_v2&quot;, &quot;alias&quot; : &quot;student&quot; &#125; &#125; ] &#125; &apos;</span><br></pre></td></tr></table></figure>
+<h3 id="ES-查询技巧"><a href="#ES-查询技巧" class="headerlink" title="ES 查询技巧"></a>ES 查询技巧</h3><ul>
+<li><p>只要不是 text 类型的字段，尽量使用 filter 过滤，因为它支持结果缓存，性能最佳。全文检索必须使用 must 而不是 filter，否则将导致 filter 缓存失效。</p>
+</li>
+<li><p>自然语言检索应该用 “match” 查询，”term” 是不分词当成整体的。</p>
+</li>
+<li><p>通过 termvector 查看一个字段的切分状况，用来辅助我们的查询语句是否正确</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">curl -XGET -H &apos;Content-Type:application/json&apos; &quot;http://$URL/mall_goods/goods/12954895599938508532/_termvectors?pretty&quot; -d &apos; &#123;</span><br><span class="line">    &quot;fields&quot; : [ &quot;item_name&quot;],</span><br><span class="line">    &quot;offsets&quot; : true,</span><br><span class="line">    &quot;payloads&quot; : true,</span><br><span class="line">    &quot;positions&quot; : true,</span><br><span class="line">    &quot;term_statistics&quot; : true,</span><br><span class="line">    &quot;field_statistics&quot; : true</span><br><span class="line">&#125; &apos;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>版本号更新<br>Elasticsearch 是分布式的。当文档创建、更新或删除时， 新版本的文档必须复制到集群中的其他节点。Elasticsearch 也是异步和并发的，这意味着这些复制请求被并行发送，并且到达目的地时也许顺序是乱的 。 Elasticsearch 需要一种方法确保文档的旧版本不会覆盖新的版本。 检查当前 _version 是否 小于 指定的版本号。 如果请求成功，外部的版本号作为文档的新 _version 进行存储.<br>常见的方法是通过增加 version_type = external , 然后使用时间戳做版本号更新来保证旧文档不会覆盖新文档。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PUT /website/blog/2?version=5&amp;version_type=external</span><br><span class="line">&#123;</span><br><span class="line">  &quot;title&quot;: &quot;My first external blog entry&quot;,</span><br><span class="line">  &quot;text&quot;:  &quot;Starting to get the hang of this...&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
           
         
@@ -1272,6 +1426,178 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/14/2018-07-27-valgrind-sanitize/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/14/2018-07-27-valgrind-sanitize/" itemprop="url">C++ 调试 - Valgrind, Sanitizer, GDB</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T16:46:46+08:00">
+                2018-07-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Program/" itemprop="url" rel="index">
+                    <span itemprop="name">Program</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文介绍各种 C++ 的调试方法</p>
+<ul>
+<li>valgrind</li>
+<li>sanitizer</li>
+<li>gdb</li>
+</ul>
+<p><code>valgrind</code> 可用来检测 C/C++ 代码是否内存泄漏。Valgrind 使用起来不需修改目标程序源码。</p>
+<p>用一个明显有内存泄漏的代码来演示</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;malloc.h&gt;</span><br><span class="line"></span><br><span class="line">int main(void) &#123;</span><br><span class="line">    int *p = NULL;</span><br><span class="line">    p = malloc(10 * sizeof(int));</span><br><span class="line">    free(p);</span><br><span class="line">    *p = 3;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译成二进制, 然后用 valgrind 检测</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">g++ -g -o bug main.c</span><br><span class="line">valgrind --tool=memcheck --leak-check=full --log-file=memchk.log ./bug</span><br></pre></td></tr></table></figure>
+<p>valgrind 会做一次 <code>全身检查</code>, 如果有内存泄漏， 我们要关注的是 LeakSummary:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">LeakSummary</span><br><span class="line">definitely lost: 确定有内存泄漏，表示在程序退出时，该内存无法回收.</span><br><span class="line">indirectly lost: 间接内存泄漏，比如结构体中定义的指针指向的内存无法回收；</span><br><span class="line">possibly lost： 可能出现内存泄漏，比如程序退出时，没有指针指向一块内存的首地址了</span><br><span class="line">still reachable: 程序没主动释放内存，在退出时候该内存仍能访问到，比如全局 new 的对象没 delete，操作系统会回收</span><br></pre></td></tr></table></figure>
+<hr>
+<p>再推荐另一个工具 <a href="https://github.com/google/sanitizers" target="_blank" rel="noopener">sanitizer</a>, 同样是上面的示例代码，</p>
+<p>用 <code>-fsanitize=address</code> 编译, 然后执行二进制，会打印出错的地址空间。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gcc -fsanitize=address -g -o bug main.c</span><br><span class="line">./bug</span><br></pre></td></tr></table></figure>
+<p>显示出错的地址空间</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">==8035== ERROR: AddressSanitizer: heap-use-after-free on address 0x60080000bfd0 at pc 0x4007e1 bp 0x7ffeb17cf780 sp 0x7ffeb17cf778</span><br><span class="line">WRITE of size 4 at 0x60080000bfd0 thread T0</span><br><span class="line">    #0 0x4007e0 (/data1/mm64/levizheng/QQMail/study/test_debug/a+0x4007e0)</span><br><span class="line">    #1 0x7f6808337c04 (/usr/lib64/libc-2.17.so+0x21c04)</span><br><span class="line">    #2 0x4006b8 (/data1/mm64/levizheng/QQMail/study/test_debug/a+0x4006b8)</span><br></pre></td></tr></table></figure>
+<p>然后用命令指定二进制来查看地址空间, <code>address2line -e bug</code>, 输入出错的地址空间，比如 <code>0x4007e0</code>,<br>就可以看到他对应的代码了。 </p>
+<hr>
+<p>说回 GDB，大多数时候用的还是最多的。</p>
+<p>用 GDB 调试一个程序</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gdb &lt;execute_binary&gt;</span><br></pre></td></tr></table></figure>
+<p>如需传入启动参数，使用 <code>set args</code>，例如</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set args -i config.file</span><br></pre></td></tr></table></figure>
+<p>开始运行则输入 <code>run</code></p>
+<p>当发生异常时，输入 <code>bt</code>, 就可以看到堆栈信息了。<br><code>f #num</code> 可以指定 具体frame 查看信息，<code>p arg</code> 用来打印变量值。<br>下面例子中, 就是查看变量的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">p __str</span><br><span class="line">p *this</span><br></pre></td></tr></table></figure>
+<p>再次展现完整的例子:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">Program received signal SIGSEGV, Segmentation fault.</span><br><span class="line">std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173</span><br><span class="line">173    /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc: No such file or directory.</span><br><span class="line">(gdb) bt</span><br><span class="line">#0  std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173</span><br><span class="line">#1  0x00000000006476d6 in GetBinLogSynShmPath (this=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95</span><br><span class="line">#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112</span><br><span class="line">#3  0x0000000000641b80 in GetMetaPtr (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.h:68</span><br><span class="line">#4  MMUxStatBFServer::BeforeMasterRun (this=0x7fffffffe1d0, pvProcArgs=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfserver.h:75</span><br><span class="line">(gdb) p __str</span><br><span class="line">$1 = (const std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; &amp;) @0x20: &lt;error reading variable&gt;</span><br><span class="line">(gdb) f 1</span><br><span class="line">#1  0x00000000006476d6 in GetBinLogSynShmPath (this=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95</span><br><span class="line">95    mmux/mmuxstatbf/mmuxstatbfconfig.h: No such file or directory.</span><br><span class="line">(gdb) p  *this</span><br><span class="line">(gdb) f 2</span><br><span class="line">#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112</span><br><span class="line">112    mmux/mmuxstatbf/binlogsyncmgr.cpp: No such file or directory.</span><br><span class="line">(gdb) info locals</span><br><span class="line">is_new = 0</span><br><span class="line">__func__ = &quot;InitShmData&quot;</span><br><span class="line">(gdb) f 1</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/14/2018-07-14-libco-study/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1397,178 +1723,6 @@
 <li>涉及到同步的接口有</li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">co_cond_alloc</span><br><span class="line">co_cond_signal</span><br><span class="line">co_cond_broadcast</span><br><span class="line">co_cond_timedwait</span><br></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/14/2018-07-27-valgrind-sanitize/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/14/2018-07-27-valgrind-sanitize/" itemprop="url">C++ 调试 - Valgrind, Sanitizer, GDB</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T16:46:46+08:00">
-                2018-07-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Program/" itemprop="url" rel="index">
-                    <span itemprop="name">Program</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文介绍各种 C++ 的调试方法</p>
-<ul>
-<li>valgrind</li>
-<li>sanitizer</li>
-<li>gdb</li>
-</ul>
-<p><code>valgrind</code> 可用来检测 C/C++ 代码是否内存泄漏。Valgrind 使用起来不需修改目标程序源码。</p>
-<p>用一个明显有内存泄漏的代码来演示</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;malloc.h&gt;</span><br><span class="line"></span><br><span class="line">int main(void) &#123;</span><br><span class="line">    int *p = NULL;</span><br><span class="line">    p = malloc(10 * sizeof(int));</span><br><span class="line">    free(p);</span><br><span class="line">    *p = 3;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>编译成二进制, 然后用 valgrind 检测</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">g++ -g -o bug main.c</span><br><span class="line">valgrind --tool=memcheck --leak-check=full --log-file=memchk.log ./bug</span><br></pre></td></tr></table></figure>
-<p>valgrind 会做一次 <code>全身检查</code>, 如果有内存泄漏， 我们要关注的是 LeakSummary:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">LeakSummary</span><br><span class="line">definitely lost: 确定有内存泄漏，表示在程序退出时，该内存无法回收.</span><br><span class="line">indirectly lost: 间接内存泄漏，比如结构体中定义的指针指向的内存无法回收；</span><br><span class="line">possibly lost： 可能出现内存泄漏，比如程序退出时，没有指针指向一块内存的首地址了</span><br><span class="line">still reachable: 程序没主动释放内存，在退出时候该内存仍能访问到，比如全局 new 的对象没 delete，操作系统会回收</span><br></pre></td></tr></table></figure>
-<hr>
-<p>再推荐另一个工具 <a href="https://github.com/google/sanitizers" target="_blank" rel="noopener">sanitizer</a>, 同样是上面的示例代码，</p>
-<p>用 <code>-fsanitize=address</code> 编译, 然后执行二进制，会打印出错的地址空间。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gcc -fsanitize=address -g -o bug main.c</span><br><span class="line">./bug</span><br></pre></td></tr></table></figure>
-<p>显示出错的地址空间</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">==8035== ERROR: AddressSanitizer: heap-use-after-free on address 0x60080000bfd0 at pc 0x4007e1 bp 0x7ffeb17cf780 sp 0x7ffeb17cf778</span><br><span class="line">WRITE of size 4 at 0x60080000bfd0 thread T0</span><br><span class="line">    #0 0x4007e0 (/data1/mm64/levizheng/QQMail/study/test_debug/a+0x4007e0)</span><br><span class="line">    #1 0x7f6808337c04 (/usr/lib64/libc-2.17.so+0x21c04)</span><br><span class="line">    #2 0x4006b8 (/data1/mm64/levizheng/QQMail/study/test_debug/a+0x4006b8)</span><br></pre></td></tr></table></figure>
-<p>然后用命令指定二进制来查看地址空间, <code>address2line -e bug</code>, 输入出错的地址空间，比如 <code>0x4007e0</code>,<br>就可以看到他对应的代码了。 </p>
-<hr>
-<p>说回 GDB，大多数时候用的还是最多的。</p>
-<p>用 GDB 调试一个程序</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gdb &lt;execute_binary&gt;</span><br></pre></td></tr></table></figure>
-<p>如需传入启动参数，使用 <code>set args</code>，例如</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set args -i config.file</span><br></pre></td></tr></table></figure>
-<p>开始运行则输入 <code>run</code></p>
-<p>当发生异常时，输入 <code>bt</code>, 就可以看到堆栈信息了。<br><code>f #num</code> 可以指定 具体frame 查看信息，<code>p arg</code> 用来打印变量值。<br>下面例子中, 就是查看变量的。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">p __str</span><br><span class="line">p *this</span><br></pre></td></tr></table></figure>
-<p>再次展现完整的例子:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">Program received signal SIGSEGV, Segmentation fault.</span><br><span class="line">std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173</span><br><span class="line">173    /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc: No such file or directory.</span><br><span class="line">(gdb) bt</span><br><span class="line">#0  std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173</span><br><span class="line">#1  0x00000000006476d6 in GetBinLogSynShmPath (this=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95</span><br><span class="line">#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112</span><br><span class="line">#3  0x0000000000641b80 in GetMetaPtr (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.h:68</span><br><span class="line">#4  MMUxStatBFServer::BeforeMasterRun (this=0x7fffffffe1d0, pvProcArgs=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfserver.h:75</span><br><span class="line">(gdb) p __str</span><br><span class="line">$1 = (const std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; &amp;) @0x20: &lt;error reading variable&gt;</span><br><span class="line">(gdb) f 1</span><br><span class="line">#1  0x00000000006476d6 in GetBinLogSynShmPath (this=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95</span><br><span class="line">95    mmux/mmuxstatbf/mmuxstatbfconfig.h: No such file or directory.</span><br><span class="line">(gdb) p  *this</span><br><span class="line">(gdb) f 2</span><br><span class="line">#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112</span><br><span class="line">112    mmux/mmuxstatbf/binlogsyncmgr.cpp: No such file or directory.</span><br><span class="line">(gdb) info locals</span><br><span class="line">is_new = 0</span><br><span class="line">__func__ = &quot;InitShmData&quot;</span><br><span class="line">(gdb) f 1</span><br></pre></td></tr></table></figure>
 
           
         
@@ -1766,165 +1920,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/17/2018-06-17-ban-nian-sui-xiang/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/06/17/2018-06-17-ban-nian-sui-xiang/" itemprop="url">半年随想</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-17T15:49:00+08:00">
-                2018-06-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Life/" itemprop="url" rel="index">
-                    <span itemprop="name">Life</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>时光荏苒，这一次的博客更新，用了一年。 故事每天都在发生，不同时段的感悟也不尽相同。</p>
-<p>过去四年接触的是小公司式的后端全栈工作。庆幸认识到人生中导师和伙伴。我从一个满腔热情,但啥都不懂的小毛孩, 到后面成长为独挡一面, 负责全公司的运维架构, 以及传承培育新人的老家伙。依然清晰记得每次凌晨无缝迁移服务器的喜悦, 以及将新技术运用到实践当中, 节约成本带来的精神富足。不得不说这是一个技术人最纯粹的感动。也有过战友离开的彷徨, 面对人事压力的焦虑。 点点滴滴占据了令人感动的回忆, 倏忽之间一晃而过。</p>
-<p>新的征途几乎是一次完全的洗礼,进入微信, 从零开始接触 C++ 的后端开发, 以往熟悉的知识体系和经验都要翻开新的一页。开始硬磕指针和内存。</p>
-<p>半年的开发时间</p>
-<ul>
-<li>写了一个通用的三机容灾布隆过滤器，支撑小程序的统计</li>
-<li>改造几个组里的基础组件</li>
-<li>承担搜索的排序模块</li>
-<li>负载客服 IM 系统的设计与开发</li>
-</ul>
-<p>我也在慢慢接受和适应凶残的加班。 产品迭代速度快到有些窒息，这样的大背景下，我还在坚持记录文档的习惯，应该是微信的 “奇葩” 了, 我怕不靠谱的记忆力给自己，后人留坑。</p>
-<p>生活的难题也一道道出现,想来也没什么好的解决方法,锻炼身心是我能把控当下的选择。偶尔我会在地铁读读古人的诗词,以前没觉得有什么, 如今觉得古人的诗词实在是豁达开朗。</p>
-<p>说了挺多废话, 生活还在继续。相信认真生活的人运气不会太差, 愿我的朋友们也都有好运相伴。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1970,7 +1970,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">100</span>
+                  <span class="site-state-item-count">101</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1992,7 +1992,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
