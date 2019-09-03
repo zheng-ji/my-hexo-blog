@@ -6,7 +6,9 @@ categories: Program
 ---
 
 C++11 可以通过 atomic_flag 来实现自旋锁。
-`test_and_set()`函数检查 atomic_flag 标志, 如果之前没被设置过则设置 atomic_flag 的标志, 并返回 false; 如果之前已被设置则返回 true。
+
+`test_and_set()`函数检查 atomic_flag 标志, 如果之前没被设置过则设置 atomic_flag 的标志, 并返回 false;
+如果之前已被设置则返回 true。
 
 ```c
 class Spinlock
