@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="织网">
 <meta property="og:description" content="其实在几年前就接触 Eleasticsearch 了，当时作为一个SA，并没有好好了解它的用法。最近在做搜索的功能，才发觉曾经对力量一无所知。 Mapping 创建 SchemaES 使用前需要定义 mapping，相当于 MySQL 的 TableSchema，在创建 mapping 的时候，配置 type 的dynamic=strict，禁止未定义字段自动被添加到索引。 12345678910">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-07-07T02:21:17.715Z">
+<meta property="og:updated_time" content="2019-08-29T04:03:28.537Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ElasticSearch 手记">
 <meta name="twitter:description" content="其实在几年前就接触 Eleasticsearch 了，当时作为一个SA，并没有好好了解它的用法。最近在做搜索的功能，才发觉曾经对力量一无所知。 Mapping 创建 SchemaES 使用前需要定义 mapping，相当于 MySQL 的 TableSchema，在创建 mapping 的时候，配置 type 的dynamic=strict，禁止未定义字段自动被添加到索引。 12345678910">
@@ -281,7 +281,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+00:00">
                 2019-02-22
               </time>
             
@@ -364,6 +364,12 @@
 <li>版本号更新<br>Elasticsearch 是分布式的。当文档创建、更新或删除时， 新版本的文档必须复制到集群中的其他节点。Elasticsearch 也是异步和并发的，这意味着这些复制请求被并行发送，并且到达目的地时也许顺序是乱的 。 Elasticsearch 需要一种方法确保文档的旧版本不会覆盖新的版本。 检查当前 _version 是否 小于 指定的版本号。 如果请求成功，外部的版本号作为文档的新 _version 进行存储.<br>常见的方法是通过增加 version_type = external , 然后使用时间戳做版本号更新来保证旧文档不会覆盖新文档。</li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PUT /website/blog/2?version=5&amp;version_type=external</span><br><span class="line">&#123;</span><br><span class="line">  &quot;title&quot;: &quot;My first external blog entry&quot;,</span><br><span class="line">  &quot;text&quot;:  &quot;Starting to get the hang of this...&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>提供排序权重<br>ES默认是按照 BM25 来计算分数的。比如以下例子，<br>用户输入qwe 我们需要搜索出名字中包含这些字符的记录</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">GET group_member_v1/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;: &#123;</span><br><span class="line">        &quot;bool&quot;: &#123;</span><br><span class="line">            &quot;must&quot;: &#123;&quot;match&quot;: &#123;&quot;split_nickname&quot;: &#123;&quot;query&quot;: &quot;q w e&quot;,&quot;operator&quot;: &quot;and&quot;&#125;&#125;&#125;</span><br><span class="line">            &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;size&quot;: 100</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>实际上我们希望，qwe 连在一起的 nickname 权重可以更高，排序更前，于是引用进了<code>const_score</code> 和 <code>match_phrase</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">GET group_member_v1/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;: &#123;</span><br><span class="line">        &quot;bool&quot;: &#123;</span><br><span class="line">            &quot;minimum_should_match&quot;: 1, </span><br><span class="line">            &quot;should&quot;: [</span><br><span class="line">                &#123;&quot;match&quot;: &#123;&quot;split_nickname&quot;: &#123;&quot;query&quot;: &quot;q w e&quot;,&quot;operator&quot;: &quot;and&quot;&#125;&#125;&#125;,</span><br><span class="line">                &#123; &quot;constant_score&quot;: &#123;&quot;boost&quot;: 1000,&quot;filter&quot;: &#123;&quot;match_phrase&quot;: &#123;&quot;split_nickname&quot;: &quot;q w e&quot;&#125;&#125;&#125;&#125;</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;size&quot;: 100</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -388,8 +394,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/02/05/2019-02-05-blocking-queue/" rel="next" title="实现一个阻塞队列">
-                <i class="fa fa-chevron-left"></i> 实现一个阻塞队列
+              <a href="/2019/02/22/2019-02-22-ac-automachine/" rel="next" title="AC 自动机">
+                <i class="fa fa-chevron-left"></i> AC 自动机
               </a>
             
           </div>
@@ -398,8 +404,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/02/22/2019-02-22-ac-automachine/" rel="prev" title="AC 自动机">
-                AC 自动机 <i class="fa fa-chevron-right"></i>
+              <a href="/2019/05/04/2019-05-04-groupcache-source-note/" rel="prev" title="groupCache 源码阅读">
+                groupCache 源码阅读 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -477,7 +483,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">101</span>
+                  <span class="site-state-item-count">102</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -499,7 +505,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
