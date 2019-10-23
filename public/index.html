@@ -249,6 +249,151 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/22/2019-10-22-nginx-grpc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/10/22/2019-10-22-nginx-grpc/" itemprop="url">Nginx 支持 GRPC 负载均衡</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-10-22T12:11:42+08:00">
+                2019-10-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/System/" itemprop="url" rel="index">
+                    <span itemprop="name">System</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>接触 grpc，从它的 <a href="https://github.com/grpc/grpc-go/tree/master/examples/helloworld" target="_blank" rel="noopener">example-GreetHelloWorld</a> 开始, client 指定了 Server 监听的IP和端口，然后直接访问.就完成了一次 RPC 请求。</p>
+<p>那时候我就在想，这里是否能指定代理转发，做负载均衡呢。比如 http访问下，我们会用 proxy_pass + upstream 来代理服务端，这样来实现服务端的负载均衡，以及灰度发布。</p>
+<p>时至今日，偶然发现 nginx 1.13 已经 支持 grpc 协议， 实操上我们可以想使用 proxy_pass 一样使用 grpc_pass </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen 80 http2;</span><br><span class="line">    access_log logs/access.log main;</span><br><span class="line">    location / &#123;</span><br><span class="line">        // Your Server Address</span><br><span class="line">        grpc_pass grpc://localhost:50051;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/2019-09-03-atomic-flag-spinlock/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -280,7 +425,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-09-03T12:11:42+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-09-03T20:11:42+08:00">
                 2019-09-03
               </time>
             
@@ -424,7 +569,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-08-03T12:11:42+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-08-03T20:11:42+08:00">
                 2019-08-03
               </time>
             
@@ -578,7 +723,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-13T12:11:42+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-13T20:11:42+08:00">
                 2019-06-13
               </time>
             
@@ -752,7 +897,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-04T04:11:42+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-04T12:11:42+08:00">
                 2019-05-04
               </time>
             
@@ -911,7 +1056,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/22/2019-03-08-es-skill/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/23/2019-03-08-es-skill/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="zheng-ji">
@@ -930,7 +1075,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/02/22/2019-03-08-es-skill/" itemprop="url">ElasticSearch 手记</a></h1>
+                <a class="post-title-link" href="/2019/02/23/2019-03-08-es-skill/" itemprop="url">ElasticSearch 手记</a></h1>
         
 
         <div class="post-meta">
@@ -942,8 +1087,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+00:00">
-                2019-02-22
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-23T00:11:42+08:00">
+                2019-02-23
               </time>
             
 
@@ -1116,7 +1261,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T08:11:42+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-22T16:11:42+08:00">
                 2019-02-22
               </time>
             
@@ -1288,7 +1433,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-05T08:11:42+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-05T16:11:42+08:00">
                 2019-02-05
               </time>
             
@@ -1445,7 +1590,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-08T02:11:42+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-08T10:11:42+08:00">
                 2018-09-08
               </time>
             
@@ -1580,178 +1725,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/14/2018-07-27-valgrind-sanitize/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/14/2018-07-27-valgrind-sanitize/" itemprop="url">C++ 调试 - Valgrind, Sanitizer, GDB</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T08:46:46+00:00">
-                2018-07-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Program/" itemprop="url" rel="index">
-                    <span itemprop="name">Program</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文介绍各种 C++ 的调试方法</p>
-<ul>
-<li>valgrind</li>
-<li>sanitizer</li>
-<li>gdb</li>
-</ul>
-<p><code>valgrind</code> 可用来检测 C/C++ 代码是否内存泄漏。Valgrind 使用起来不需修改目标程序源码。</p>
-<p>用一个明显有内存泄漏的代码来演示</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;malloc.h&gt;</span><br><span class="line"></span><br><span class="line">int main(void) &#123;</span><br><span class="line">    int *p = NULL;</span><br><span class="line">    p = malloc(10 * sizeof(int));</span><br><span class="line">    free(p);</span><br><span class="line">    *p = 3;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>编译成二进制, 然后用 valgrind 检测</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">g++ -g -o bug main.c</span><br><span class="line">valgrind --tool=memcheck --leak-check=full --log-file=memchk.log ./bug</span><br></pre></td></tr></table></figure>
-<p>valgrind 会做一次 <code>全身检查</code>, 如果有内存泄漏， 我们要关注的是 LeakSummary:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">LeakSummary</span><br><span class="line">definitely lost: 确定有内存泄漏，表示在程序退出时，该内存无法回收.</span><br><span class="line">indirectly lost: 间接内存泄漏，比如结构体中定义的指针指向的内存无法回收；</span><br><span class="line">possibly lost： 可能出现内存泄漏，比如程序退出时，没有指针指向一块内存的首地址了</span><br><span class="line">still reachable: 程序没主动释放内存，在退出时候该内存仍能访问到，比如全局 new 的对象没 delete，操作系统会回收</span><br></pre></td></tr></table></figure>
-<hr>
-<p>再推荐另一个工具 <a href="https://github.com/google/sanitizers" target="_blank" rel="noopener">sanitizer</a>, 同样是上面的示例代码，</p>
-<p>用 <code>-fsanitize=address</code> 编译, 然后执行二进制，会打印出错的地址空间。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gcc -fsanitize=address -g -o bug main.c</span><br><span class="line">./bug</span><br></pre></td></tr></table></figure>
-<p>显示出错的地址空间</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">==8035== ERROR: AddressSanitizer: heap-use-after-free on address 0x60080000bfd0 at pc 0x4007e1 bp 0x7ffeb17cf780 sp 0x7ffeb17cf778</span><br><span class="line">WRITE of size 4 at 0x60080000bfd0 thread T0</span><br><span class="line">    #0 0x4007e0 (/data1/mm64/levizheng/QQMail/study/test_debug/a+0x4007e0)</span><br><span class="line">    #1 0x7f6808337c04 (/usr/lib64/libc-2.17.so+0x21c04)</span><br><span class="line">    #2 0x4006b8 (/data1/mm64/levizheng/QQMail/study/test_debug/a+0x4006b8)</span><br></pre></td></tr></table></figure>
-<p>然后用命令指定二进制来查看地址空间, <code>address2line -e bug</code>, 输入出错的地址空间，比如 <code>0x4007e0</code>,<br>就可以看到他对应的代码了。 </p>
-<hr>
-<p>说回 GDB，大多数时候用的还是最多的。</p>
-<p>用 GDB 调试一个程序</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gdb &lt;execute_binary&gt;</span><br></pre></td></tr></table></figure>
-<p>如需传入启动参数，使用 <code>set args</code>，例如</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set args -i config.file</span><br></pre></td></tr></table></figure>
-<p>开始运行则输入 <code>run</code></p>
-<p>当发生异常时，输入 <code>bt</code>, 就可以看到堆栈信息了。<br><code>f #num</code> 可以指定 具体frame 查看信息，<code>p arg</code> 用来打印变量值。<br>下面例子中, 就是查看变量的。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">p __str</span><br><span class="line">p *this</span><br></pre></td></tr></table></figure>
-<p>再次展现完整的例子:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">Program received signal SIGSEGV, Segmentation fault.</span><br><span class="line">std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173</span><br><span class="line">173    /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc: No such file or directory.</span><br><span class="line">(gdb) bt</span><br><span class="line">#0  std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::basic_string (this=0x7fffffffdd40, __str=...) at /data1/gcc-4.8.2_build/x86_64-unknown-linux-gnu/libstdc++-v3/include/bits/basic_string.tcc:173</span><br><span class="line">#1  0x00000000006476d6 in GetBinLogSynShmPath (this=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95</span><br><span class="line">#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112</span><br><span class="line">#3  0x0000000000641b80 in GetMetaPtr (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.h:68</span><br><span class="line">#4  MMUxStatBFServer::BeforeMasterRun (this=0x7fffffffe1d0, pvProcArgs=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfserver.h:75</span><br><span class="line">(gdb) p __str</span><br><span class="line">$1 = (const std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; &amp;) @0x20: &lt;error reading variable&gt;</span><br><span class="line">(gdb) f 1</span><br><span class="line">#1  0x00000000006476d6 in GetBinLogSynShmPath (this=&lt;optimized out&gt;) at mmux/mmuxstatbf/mmuxstatbfconfig.h:95</span><br><span class="line">95    mmux/mmuxstatbf/mmuxstatbfconfig.h: No such file or directory.</span><br><span class="line">(gdb) p  *this</span><br><span class="line">(gdb) f 2</span><br><span class="line">#2  BinLogSyncMgr::InitShmData (this=0x1fbee80) at mmux/mmuxstatbf/binlogsyncmgr.cpp:112</span><br><span class="line">112    mmux/mmuxstatbf/binlogsyncmgr.cpp: No such file or directory.</span><br><span class="line">(gdb) info locals</span><br><span class="line">is_new = 0</span><br><span class="line">__func__ = &quot;InitShmData&quot;</span><br><span class="line">(gdb) f 1</span><br></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/14/2018-07-14-libco-study/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1783,7 +1756,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T08:46:46+00:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T16:46:46+08:00">
                 2018-07-14
               </time>
             
@@ -1962,7 +1935,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">102</span>
+                  <span class="site-state-item-count">103</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1984,7 +1957,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">5</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>

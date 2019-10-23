@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="织网">
 <meta property="og:description" content="其实在几年前就接触 Eleasticsearch 了，当时作为一个SA，并没有好好了解它的用法。最近在做搜索的功能，才发觉曾经对力量一无所知。 Mapping 创建 SchemaES 使用前需要定义 mapping，相当于 MySQL 的 TableSchema，在创建 mapping 的时候，配置 type 的dynamic=strict，禁止未定义字段自动被添加到索引。 12345678910">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-03-08T09:00:29.836Z">
+<meta property="og:updated_time" content="2019-09-04T07:58:58.624Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ElasticSearch 手记">
 <meta name="twitter:description" content="其实在几年前就接触 Eleasticsearch 了，当时作为一个SA，并没有好好了解它的用法。最近在做搜索的功能，才发觉曾经对力量一无所知。 Mapping 创建 SchemaES 使用前需要定义 mapping，相当于 MySQL 的 TableSchema，在创建 mapping 的时候，配置 type 的dynamic=strict，禁止未定义字段自动被添加到索引。 12345678910">
@@ -360,6 +360,20 @@
 </li>
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">curl -XGET -H &apos;Content-Type:application/json&apos; &quot;http://$URL/mall_goods/goods/12954895599938508532/_termvectors?pretty&quot; -d &apos; &#123;</span><br><span class="line">    &quot;fields&quot; : [ &quot;item_name&quot;],</span><br><span class="line">    &quot;offsets&quot; : true,</span><br><span class="line">    &quot;payloads&quot; : true,</span><br><span class="line">    &quot;positions&quot; : true,</span><br><span class="line">    &quot;term_statistics&quot; : true,</span><br><span class="line">    &quot;field_statistics&quot; : true</span><br><span class="line">&#125; &apos;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>版本号更新<br>Elasticsearch 是分布式的。当文档创建、更新或删除时， 新版本的文档必须复制到集群中的其他节点。Elasticsearch 也是异步和并发的，这意味着这些复制请求被并行发送，并且到达目的地时也许顺序是乱的 。 Elasticsearch 需要一种方法确保文档的旧版本不会覆盖新的版本。 检查当前 _version 是否 小于 指定的版本号。 如果请求成功，外部的版本号作为文档的新 _version 进行存储.<br>常见的方法是通过增加 version_type = external , 然后使用时间戳做版本号更新来保证旧文档不会覆盖新文档。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PUT /website/blog/2?version=5&amp;version_type=external</span><br><span class="line">&#123;</span><br><span class="line">  &quot;title&quot;: &quot;My first external blog entry&quot;,</span><br><span class="line">  &quot;text&quot;:  &quot;Starting to get the hang of this...&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>提供排序权重<br>ES默认是按照 BM25 来计算分数的。比如以下例子，<br>用户输入qwe 我们需要搜索出名字中包含这些字符的记录</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">GET group_member_v1/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;: &#123;</span><br><span class="line">        &quot;bool&quot;: &#123;</span><br><span class="line">            &quot;must&quot;: &#123;&quot;match&quot;: &#123;&quot;split_nickname&quot;: &#123;&quot;query&quot;: &quot;q w e&quot;,&quot;operator&quot;: &quot;and&quot;&#125;&#125;&#125;</span><br><span class="line">            &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;size&quot;: 100</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>实际上我们希望，qwe 连在一起的 nickname 权重可以更高，排序更前，于是引用进了<code>const_score</code> 和 <code>match_phrase</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">GET group_member_v1/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;: &#123;</span><br><span class="line">        &quot;bool&quot;: &#123;</span><br><span class="line">            &quot;minimum_should_match&quot;: 1, </span><br><span class="line">            &quot;should&quot;: [</span><br><span class="line">                &#123;&quot;match&quot;: &#123;&quot;split_nickname&quot;: &#123;&quot;query&quot;: &quot;q w e&quot;,&quot;operator&quot;: &quot;and&quot;&#125;&#125;&#125;,</span><br><span class="line">                &#123; &quot;constant_score&quot;: &#123;&quot;boost&quot;: 1000,&quot;filter&quot;: &#123;&quot;match_phrase&quot;: &#123;&quot;split_nickname&quot;: &quot;q w e&quot;&#125;&#125;&#125;&#125;</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;size&quot;: 100</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Suggester"><a href="#Suggester" class="headerlink" title="Suggester"></a>Suggester</h3><p>completion suggest，常叫做自动完成(auto completion) 也叫搜索推荐。<br>比如说我们在搜索歌曲，搜索”月亮”，百度自动给你提示 “月亮代表我的心”, “月亮之上”, 搜索引擎会自动提示补全，借助 ES 的 Suggester 也有这个功能。看如下的例子</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">PUT /songs_index</span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">        <span class="attr">"songs"</span> : &#123;</span><br><span class="line">            <span class="attr">"properties"</span> : &#123;</span><br><span class="line">                <span class="attr">"title"</span> : &#123;</span><br><span class="line">                    <span class="attr">"type"</span>: <span class="string">"text"</span>,</span><br><span class="line">                    <span class="attr">"analyzer"</span>: <span class="string">"ik_max_word"</span>,</span><br><span class="line">                    <span class="attr">"fields"</span>: &#123;</span><br><span class="line">                            <span class="attr">"suggest"</span> : &#123;</span><br><span class="line">                                "type" : "completion", // 这个特性就是我们想要的</span><br><span class="line">                                "analyzer": "ik_max_word"</span><br><span class="line">                            &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;,</span><br><span class="line">                "content": &#123;</span><br><span class="line">                    "type": "text",</span><br><span class="line">                    "analyzer": "ik_max_word"</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查询语句</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /song_indexs/songs/_search</span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">"suggest"</span>: &#123;</span><br><span class="line">        <span class="attr">"my-suggest"</span> : &#123;</span><br><span class="line">            <span class="attr">"text"</span> : <span class="string">"华南"</span>,</span><br><span class="line">                <span class="attr">"completion"</span> : &#123;</span><br><span class="line">                    <span class="attr">"field"</span> : <span class="string">"title.suggest"</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -384,7 +398,7 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/02/23/2019-02-22-ac-automachine/" rel="next" title="AC 自动机">
+              <a href="/2019/02/22/2019-02-22-ac-automachine/" rel="next" title="AC 自动机">
                 <i class="fa fa-chevron-left"></i> AC 自动机
               </a>
             
@@ -393,6 +407,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/04/2019-05-04-groupcache-source-note/" rel="prev" title="groupCache 源码阅读">
+                groupCache 源码阅读 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -469,7 +487,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">99</span>
+                  <span class="site-state-item-count">103</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -491,7 +509,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">5</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
@@ -540,7 +558,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mapping-创建-Schema"><span class="nav-number">1.</span> <span class="nav-text">Mapping 创建 Schema</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#中文分词"><span class="nav-number">2.</span> <span class="nav-text">中文分词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#别名"><span class="nav-number">3.</span> <span class="nav-text">别名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ES-查询技巧"><span class="nav-number">4.</span> <span class="nav-text">ES 查询技巧</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mapping-创建-Schema"><span class="nav-number">1.</span> <span class="nav-text">Mapping 创建 Schema</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#中文分词"><span class="nav-number">2.</span> <span class="nav-text">中文分词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#别名"><span class="nav-number">3.</span> <span class="nav-text">别名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ES-查询技巧"><span class="nav-number">4.</span> <span class="nav-text">ES 查询技巧</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Suggester"><span class="nav-number">5.</span> <span class="nav-text">Suggester</span></a></li></ol></div>
             
 
           </div>
