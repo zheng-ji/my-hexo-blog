@@ -68,6 +68,9 @@ WRITE of size 4 at 0x60080000bfd0 thread T0
 然后用命令指定二进制来查看地址空间, `address2line -e bug`, 输入出错的地址空间，比如 `0x4007e0`, 
 就可以看到他对应的代码了。 
 
+如果用 addr2line
+addr2line -C -f -e <executable_bin> 0xffc3b7
+
 ----
 
 说回 GDB，大多数时候用的还是最多的。

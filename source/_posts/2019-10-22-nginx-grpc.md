@@ -9,7 +9,7 @@ categories: System
 
 那时候我就在想，这里是否能指定代理转发，做负载均衡呢。比如 http访问下，我们会用 proxy_pass + upstream 来代理服务端，这样来实现服务端的负载均衡，以及灰度发布。
 
-时至今日，偶然发现 nginx 1.13 已经 支持 grpc 协议， 实操上我们可以想使用 proxy_pass 一样使用 grpc_pass 
+今日偶然发现 nginx 1.13 已经 支持 grpc 协议， 实操上我们可以像使用 proxy_pass 一样使用 grpc_pass 
 
 ```shell
 server {

@@ -249,6 +249,171 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/10/2020-02-10-deducting-inventory-with-mysql/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zheng-ji">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="织网">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/02/10/2020-02-10-deducting-inventory-with-mysql/" itemprop="url">MySQL 扣减库存的笔记</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-02-10T12:11:42+08:00">
+                2020-02-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/program/" itemprop="url" rel="index">
+                    <span itemprop="name">program</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="一个思考"><a href="#一个思考" class="headerlink" title="一个思考"></a>一个思考</h3><p>电商网站有一个场景是：用户购买一个商品，库存会做扣减。如果用 MySQL 做商品存储，会遇到什么坑，该怎么避免。</p>
+<p>简化的商品表如下。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`goods`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">'自增id'</span>,</span><br><span class="line">  <span class="string">`name`</span> <span class="built_in">varchar</span>(<span class="number">256</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">''</span> <span class="keyword">COMMENT</span> <span class="string">'商品名称'</span>,</span><br><span class="line">  <span class="string">`available`</span> <span class="built_in">int</span>(<span class="number">11</span>)  <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">'0'</span> <span class="keyword">COMMENT</span> <span class="string">'库存剩余量'</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8</span><br></pre></td></tr></table></figure>
+<p>在阅读网上的解决方法之前，脑海会迸发一个解决方法是：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> goods <span class="keyword">SET</span> available = available - <span class="number">1</span> <span class="keyword">WHERE</span> <span class="keyword">id</span> = xxx</span><br></pre></td></tr></table></figure>
+<p>如果是这么简单的话，那就没有必要讨论了。实际上在并发请求的业务场景下，有可能出现 available 变量变成负数。</p>
+<p>虽然我们可以将 available 变量设计成 int unsigned 字段来避免，但是在不同的 MySQL 版本下，会出现 available 溢出成为一个非常大的数。</p>
+<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><ul>
+<li>悲观锁的方案：SELECT FOR UPDATE</li>
+</ul>
+<p>当我们查询 goods 信息后就把当前的数据锁定，直到我们修改完毕后再解锁。不过 FOR UPDATE 仅适用于 InnoDB，且必须在事务区块中才能生效。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">set autocommit = 0; // 设置MySQL为非autocommit模式：</span><br><span class="line">begin trans;// 开始事务</span><br><span class="line">select avaliable from goods where id = xxx for update; //1.查询出商品信息</span><br><span class="line">if (avaliable &gt;= 0) &#123;</span><br><span class="line">   affectNum = udpate goods set available = available - 1 where id = xx ;</span><br><span class="line">   commit ; // 4.提交事务</span><br><span class="line">&#125; else &#123;</span><br><span class="line">   rollback ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>弊端：<br>悲观锁是排他锁，会阻塞其他写请求，如果上述代码有异常，导致 Commit/Rollback 没有执行，就会造成所有请求都在等待锁。</p>
+<ul>
+<li>乐观锁的方案</li>
+</ul>
+<p>乐观锁假设数据一般情况下不会冲突，在数据提交更新的时候，才会对检测数据的冲突与，如果发现冲突了，则让返回用户错误的信息，让用户决定。<br>通常做法是记录加一个 <code>Version</code> 字段。读取记录时，连同 <code>Version</code> 一同读出。数据每次更新时候，Version + 1， 更新时判断记录的当前版本与之前取出来的 Version 值比对，<br>如果当前版本号与第一次取出来的 Version 值相等，则予以更新，否则认为是过期数据。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> avaiable ,<span class="keyword">version</span> <span class="keyword">from</span> goods <span class="keyword">where</span> <span class="keyword">id</span>=xxx <span class="keyword">limit</span> <span class="number">1</span>; // 查询version</span><br><span class="line">if (available &gt; 0) &#123;</span><br><span class="line">	<span class="keyword">update</span> goods <span class="keyword">set</span> avaiable=avaiable<span class="number">-1</span> <span class="keyword">where</span> <span class="keyword">id</span> =xx <span class="keyword">and</span> <span class="keyword">version</span>= &lt;刚查出来的 <span class="keyword">Version</span>&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>弊端： 这样虽然保证安全，但是需要执行2次 SQL</p>
+<ul>
+<li>Update 时增加 available 查询条件</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">udpate goods <span class="keyword">set</span> available = available - <span class="number">1</span> <span class="keyword">where</span> <span class="keyword">id</span> = xx <span class="keyword">and</span> available - <span class="number">1</span> &gt;= <span class="number">0</span> ;</span><br></pre></td></tr></table></figure>
+<p>Innodb 的 Update 语句，对于 id 是主键索引的情况下会执行行锁。该语句在 MySQL中是先读后更新，串行且原子的。单条语句，实际上也是一个事务。这个方法效率更快，且安全。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/22/2019-10-22-nginx-grpc/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -344,7 +509,7 @@
           
             <p>接触 grpc，从它的 <a href="https://github.com/grpc/grpc-go/tree/master/examples/helloworld" target="_blank" rel="noopener">example-GreetHelloWorld</a> 开始, client 指定了 Server 监听的IP和端口，然后直接访问.就完成了一次 RPC 请求。</p>
 <p>那时候我就在想，这里是否能指定代理转发，做负载均衡呢。比如 http访问下，我们会用 proxy_pass + upstream 来代理服务端，这样来实现服务端的负载均衡，以及灰度发布。</p>
-<p>时至今日，偶然发现 nginx 1.13 已经 支持 grpc 协议， 实操上我们可以想使用 proxy_pass 一样使用 grpc_pass </p>
+<p>今日偶然发现 nginx 1.13 已经 支持 grpc 协议， 实操上我们可以像使用 proxy_pass 一样使用 grpc_pass </p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen 80 http2;</span><br><span class="line">    access_log logs/access.log main;</span><br><span class="line">    location / &#123;</span><br><span class="line">        // Your Server Address</span><br><span class="line">        grpc_pass grpc://localhost:50051;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
           
@@ -1712,179 +1877,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/14/2018-07-14-libco-study/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zheng-ji">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="织网">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/14/2018-07-14-libco-study/" itemprop="url">Libco</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-14T16:46:46+08:00">
-                2018-07-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Program/" itemprop="url" rel="index">
-                    <span itemprop="name">Program</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>Libco 是 微信出品的 C/C++ 的协程库, 通过仅有的几个函数接口 co_create/co_resume/co_yield 再配合 co_poll，可以支持同步或者异步的写法</p>
-</blockquote>
-<p>让我们用官方的 <a href="https://github.com/Tencent/libco/blob/master/example_cond.cpp" target="_blank" rel="noopener">example_cond.cpp</a> 来开启学习之旅</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;queue&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"co_routine.h"</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">stTask_t</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> id;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">stEnv_t</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    stCoCond_t* cond;</span><br><span class="line">    <span class="built_in">queue</span>&lt;stTask_t*&gt; task_queue;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="keyword">void</span>* <span class="title">Producer</span><span class="params">(<span class="keyword">void</span>* args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    co_enable_hook_sys();</span><br><span class="line">    stEnv_t* env = (stEnv_t*)args;</span><br><span class="line">    <span class="keyword">int</span> id = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        stTask_t* task = (stTask_t*)<span class="built_in">calloc</span>(<span class="number">1</span>, <span class="keyword">sizeof</span>(stTask_t));</span><br><span class="line">        task-&gt;id = id++;</span><br><span class="line">        env-&gt;task_queue.push(task);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"%s:%d produce task %d\n"</span>, __func__, __LINE__, task-&gt;id);</span><br><span class="line">        co_cond_signal(env-&gt;cond);</span><br><span class="line">        poll(<span class="literal">NULL</span>, <span class="number">0</span>, <span class="number">1000</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span>* <span class="title">Consumer</span><span class="params">(<span class="keyword">void</span>* args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    co_enable_hook_sys();</span><br><span class="line">    stEnv_t* env = (stEnv_t*)args;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (env-&gt;task_queue.empty())</span><br><span class="line">        &#123;</span><br><span class="line">            co_cond_timedwait(env-&gt;cond, <span class="number">-1</span>);</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        stTask_t* task = env-&gt;task_queue.front();</span><br><span class="line">        env-&gt;task_queue.pop();</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"%s:%d consume task %d\n"</span>, __func__, __LINE__, task-&gt;id);</span><br><span class="line">        <span class="built_in">free</span>(task);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    stEnv_t* env = <span class="keyword">new</span> stEnv_t;</span><br><span class="line">    env-&gt;cond = co_cond_alloc();</span><br><span class="line"></span><br><span class="line">    stCoRoutine_t* consumer_routine;</span><br><span class="line">    co_create(&amp;consumer_routine, <span class="literal">NULL</span>, Consumer, env);</span><br><span class="line">    co_resume(consumer_routine);</span><br><span class="line"></span><br><span class="line">    stCoRoutine_t* producer_routine;</span><br><span class="line">    co_create(&amp;producer_routine, <span class="literal">NULL</span>, Producer, env);</span><br><span class="line">    co_resume(producer_routine);</span><br><span class="line"></span><br><span class="line">    co_eventloop(co_get_epoll_ct(), <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>通过以下命令编译就可以执行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/Tencent/libco</span><br><span class="line">cd libco</span><br><span class="line">make</span><br><span class="line">// 需要-ldl -lpthread</span><br><span class="line">g++ example_cond.cpp -o main  -L./lib -lcolib -lpthread -ldl</span><br><span class="line">./main</span><br></pre></td></tr></table></figure></p>
-<p>重点函数如下</p>
-<ul>
-<li>co_create 是协程创建函数, 原型如下<br>co 是协程控制块，attr 创建协程属性，一般用来设置共享栈模式和栈空间大小，默认为 NULL，routine 是协程的入口函数，arg 是函数的参数</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">int co_create(stCoRoutine_t** co, const stCoRoutineAttr_t* attr,</span><br><span class="line">void* (*routine)(void*), void* arg);</span><br></pre></td></tr></table></figure>
-<ul>
-<li>co_resume </li>
-</ul>
-<p>切换到指定的协程 co，操作系统对协程是无感知的，切换调度都是由协程自己来完成</p>
-<ul>
-<li>co_eventloop</li>
-</ul>
-<p>co_eventloop 是主协程的调度函数，函数的主要作用就是通过 epoll 负责各个协程的时间监控，如果有网络事件到了或者等待时间超时了，就切换到相应的协程处理。ctx 是库函数 co_get_epoll_ct()，pfn 是一个钩子函数，用户自定义，在函数 co_eventloop 的最后会执行，arg 是 pfn的参数</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">void co_eventloop(stCoEpoll_t *ctx, pfn_co_eventloop_t pfn, void *arg)</span><br></pre></td></tr></table></figure>
-<ul>
-<li>co_enable_hook_sys() </li>
-</ul>
-<p>co_enable_hook_sys 函数是用来打开 libco 的钩子标示，进行系统 io 函数的时候才会调用到 libco 的函数而不是原系统函数</p>
-<ul>
-<li>poll 相当于我们平时用到的 sleep 函数。<br>如果用 sleep 作用到的是整个线程，通过 poll 来实现协程的挂起，协程环境下实际调用的函数是 co_poll，主要是完成回调函数的设置，超时事件的挂入然后把自己切出去。</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int poll(struct pollfd fds[], nfds_t nfds, int timeout)</span><br></pre></td></tr></table></figure>
-<ul>
-<li>涉及到同步的接口有</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">co_cond_alloc</span><br><span class="line">co_cond_signal</span><br><span class="line">co_cond_broadcast</span><br><span class="line">co_cond_timedwait</span><br></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1935,7 +1927,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">103</span>
+                  <span class="site-state-item-count">104</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1946,7 +1938,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">categories</span>
                 </a>
               </div>
@@ -1957,7 +1949,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
@@ -2010,7 +2002,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
